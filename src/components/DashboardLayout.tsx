@@ -3,13 +3,13 @@
 import React, { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Briefcase, Settings, LayoutDashboard, ListOrdered, CalendarCheck, Users, Building2 } from 'lucide-react'; // Changed User to LogOut
+import { LogOut, Briefcase, Settings, LayoutDashboard, ListOrdered, CalendarCheck, Users, Building2, LucideIcon } from 'lucide-react'; // Import LucideIcon
 import { Button } from './ui/button'; // Import shadcn/ui Button
 
 interface DashboardLayoutProps {
   children: ReactNode;
   title: string;
-  sidebarNav: { path: string; label: string; icon: React.ElementType }[];
+  sidebarNav: { path: string; label: string; icon: LucideIcon }[]; // Changed icon type to LucideIcon
 }
 
 const DashboardLayout = ({ children, title, sidebarNav }: DashboardLayoutProps) => {
@@ -50,7 +50,7 @@ const DashboardLayout = ({ children, title, sidebarNav }: DashboardLayoutProps) 
             onClick={logout}
             className="w-full flex items-center justify-center space-x-2 p-3 rounded-md bg-red-600 hover:bg-red-700 text-white transition-colors duration-200"
           >
-            <LogOut size={20} /> {/* Changed icon from User to LogOut */}
+            <LogOut size={20} />
             <span>Logout</span>
           </Button>
         </div>
