@@ -22,5 +22,19 @@
   "english": "English",
   "telugu": "తెలుగు",
   "print": "Print",
-  "your_orders": "Your Orders"
+  "your_orders": "Your Orders",
+  "our_comprehensive_services": "Our Comprehensive Services",
+  "services_intro_paragraph": "At Yasin Digital Solutions, we offer a wide range of services designed to help your business thrive in the digital landscape. From initial concept to deployment and ongoing support, we are your trusted partner.",
+  "custom_website_development_title": "Custom Website Development",
+  "custom_website_development_description": "Building responsive, high-performance websites from scratch, tailored to your unique business needs and brand identity.",
+  "mobile_app_development_title": "Mobile App Development",
+  "mobile_app_development_description": "Creating intuitive and engaging mobile applications for iOS and Android platforms, ensuring a seamless user experience.",
+  "digital_marketing_strategies_title": "Digital Marketing Strategies",
+  "digital_marketing_strategies_description": "Developing comprehensive digital marketing campaigns including SEO, social media, and content marketing to boost your online presence.",
+  "e_commerce_solutions_title": "E-commerce Solutions",
+  "e_commerce_solutions_description": "Designing and developing robust e-commerce platforms that provide a smooth shopping experience and drive sales.",
+  "cloud_solutions_hosting_title": "Cloud Solutions & Hosting",
+  "cloud_solutions_hosting_description": "Providing secure and scalable cloud hosting and infrastructure management to ensure your applications are always available and performant.",
+  "seo_analytics_title": "SEO & Analytics",
+  "seo_analytics_description": "Optimizing your digital assets for search engines and providing in-depth analytics to track performance and inform strategy."
 }
