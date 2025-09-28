@@ -8,7 +8,7 @@ import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { ApiResponse, UserProfile } from '../types/api'; // Import ApiResponse and UserProfile
-import { updateUserPassword } from '../api/auth'; // Import the new password update function
+import { updateUserPassword, updateUserProfile as apiUpdateUserProfile } from '../api/auth/profile'; // Updated import path and aliased updateUserProfile
 
 interface UserProfileFormProps {
   title: string;
@@ -40,6 +40,7 @@ const UserProfileForm = ({ title, onUpdateProfile }: UserProfileFormProps) => {
     }
     setLoadingNameUpdate(true);
     try {
+      // Use the prop function for updating the name
       const { data: updatedUser, error } = await onUpdateProfile(token, name);
       if (updatedUser) {
         updateUser({ name: updatedUser.name });

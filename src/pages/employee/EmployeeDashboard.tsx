@@ -8,7 +8,7 @@ import UserProfileForm from '../../components/UserProfileForm';
 import EmployeeAssignedJobs from './EmployeeAssignedJobs';
 import EmployeeCompletedJobs from './EmployeeCompletedJobs';
 import EmployeeOverview from './EmployeeOverview'; // Import EmployeeOverview
-import { updateUserProfile } from '../../api/auth'; // Import the specific update function
+import { updateUserProfile } from '../../api/auth/profile'; // Import the specific update function from new file
 
 const employeeNav = [
   { path: 'overview', label: 'Overview', icon: LayoutDashboard }, // Added Overview

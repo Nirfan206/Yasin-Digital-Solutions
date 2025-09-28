@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { loginUser, registerUser, fetchCurrentUser } from '../api/auth';
+import { loginUser, registerUser, fetchCurrentUser } from '../api/auth/auth'; // Updated import path
 import { showSuccess, showError } from '../utils/toast';
 import { useNavigate } from 'react-router-dom';
 import { UserProfile } from '../types/api'; // Import UserProfile interface

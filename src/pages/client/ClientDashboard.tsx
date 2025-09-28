@@ -8,7 +8,7 @@ import UserProfileForm from '../../components/UserProfileForm';
 import ClientOrders from './ClientOrders';
 import ClientSubscriptions from './ClientSubscriptions';
 import ClientOverview from './ClientOverview';
-import { updateUserProfile } from '../../api/auth'; // Import the specific update function
+import { updateUserProfile } from '../../api/auth/profile'; // Import the specific update function from new file
 
 const clientNav = [
   { path: 'overview', label: 'Overview', icon: LayoutDashboard },
