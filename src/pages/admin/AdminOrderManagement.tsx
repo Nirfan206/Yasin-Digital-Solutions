@@ -86,7 +86,11 @@ const AdminOrderManagement = () => {
                 {orders.map((order) => (
                   <TableRow key={order._id}>
                     <TableCell className="font-medium">{order._id}</TableCell>
-                    <TableCell>{order.clientName} ({order.clientEmail})</TableCell>
+                    <TableCell>
+                      {order.clientName && order.clientEmail
+                        ? `${order.clientName} (${order.clientEmail})`
+                        : order.clientName || order.clientEmail || 'N/A'}
+                    </TableCell>
                     <TableCell>{order.serviceType}</TableCell>
                     <TableCell className="max-w-xs truncate">{order.requirements}</TableCell>
                     <TableCell>
