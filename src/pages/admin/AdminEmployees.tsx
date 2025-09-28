@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye } from 'lucide-react'; // Added Eye icon
 import { useAuth } from '../../context/AuthContext';
 import { fetchAllEmployees, createEmployee, updateEmployee, deleteEmployee } from '../../api/admin/employees'; // Import API functions from new file
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
@@ -25,6 +25,10 @@ const AdminEmployees = () => {
   const [role, setRole] = useState('employee');
   const [status, setStatus] = useState<'Active' | 'Inactive'>('Active');
   const [loading, setLoading] = useState(false); // For modal actions
+
+  // State for "View Employee Details" modal
+  const [isEmployeeDetailsModalOpen, setIsEmployeeDetailsModalOpen] = useState(false);
+  const [selectedEmployeeForDetails, setSelectedEmployeeForDetails] = useState<Employee | null>(null);
 
   useEffect(() => {
     const getEmployees = async () => {
@@ -128,6 +132,16 @@ const AdminEmployees = () => {
     }
   };
 
+  const openEmployeeDetailsModal = (employee: Employee) => {
+    setSelectedEmployeeForDetails(employee);
+    setIsEmployeeDetailsModalOpen(true);
+  };
+
+  const closeEmployeeDetailsModal = () => {
+    setIsEmployeeDetailsModalOpen(false);
+    setSelectedEmployeeForDetails(null);
+  };
+
   return (
     <Card className="w-full mx-auto">
       <CardHeader className="flex flex-row justify-between items-center">
@@ -173,6 +187,15 @@ const AdminEmployees = () => {
                     </TableCell>
                     <TableCell>{new Date(employee.hiredDate).toLocaleDateString()}</TableCell>
                     <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openEmployeeDetailsModal(employee)}
+                        className="mr-2"
+                        title="View Employee Details"
+                      >
+                        <Eye size={18} />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -269,6 +292,34 @@ const AdminEmployees = () => {
               </Select>
             </div>
           </form>
+        </Modal>
+
+        {/* Employee Details Modal */}
+        <Modal
+          isOpen={isEmployeeDetailsModalOpen}
+          onClose={closeEmployeeDetailsModal}
+          title={`Employee Details: ${selectedEmployeeForDetails?.name || 'N/A'}`}
+          description={selectedEmployeeForDetails?.email}
+          footer={
+            <Button onClick={closeEmployeeDetailsModal}>Close</Button>
+          }
+        >
+          {selectedEmployeeForDetails && (
+            <div className="space-y-4 text-gray-700">
+              <p><strong>Employee ID:</strong> {selectedEmployeeForDetails.id}</p>
+              <p><strong>Name:</strong> {selectedEmployeeForDetails.name}</p>
+              <p><strong>Email:</strong> {selectedEmployeeForDetails.email}</p>
+              <p><strong>Role:</strong> {selectedEmployeeForDetails.role}</p>
+              <p><strong>Status:</strong>
+                <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                  selectedEmployeeForDetails.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>
+                  {selectedEmployeeForDetails.status}
+                </span>
+              </p>
+              <p><strong>Hired Date:</strong> {new Date(selectedEmployeeForDetails.hiredDate).toLocaleDateString()}</p>
+            </div>
+          )}
         </Modal>
       </CardContent>
     </Card>
