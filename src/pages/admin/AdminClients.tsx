@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye } from 'lucide-react'; // Added Eye icon
 import { useAuth } from '../../context/AuthContext';
 import { fetchAllClients, createClient, updateClient, deleteClient } from '../../api/admin/clients'; // Import API functions from new file
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
@@ -24,6 +24,11 @@ const AdminClients = () => {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'Active' | 'Inactive'>('Active');
   const [loading, setLoading] = useState(false); // For modal actions
+
+  // State for "View Client Details" modal
+  const [isClientDetailsModalOpen, setIsClientDetailsModalOpen] = useState(false);
+  const [selectedClientForDetails, setSelectedClientForDetails] = useState<Client | null>(null);
+
 
   useEffect(() => {
     const getClients = async () => {
@@ -125,6 +130,16 @@ const AdminClients = () => {
     }
   };
 
+  const openClientDetailsModal = (client: Client) => {
+    setSelectedClientForDetails(client);
+    setIsClientDetailsModalOpen(true);
+  };
+
+  const closeClientDetailsModal = () => {
+    setIsClientDetailsModalOpen(false);
+    setSelectedClientForDetails(null);
+  };
+
   return (
     <Card className="w-full mx-auto">
       <CardHeader className="flex flex-row justify-between items-center">
@@ -168,6 +183,15 @@ const AdminClients = () => {
                     </TableCell>
                     <TableCell>{new Date(client.registeredDate).toLocaleDateString()}</TableCell>
                     <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openClientDetailsModal(client)}
+                        className="mr-2"
+                        title="View Client Details"
+                      >
+                        <Eye size={18} />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -251,6 +275,33 @@ const AdminClients = () => {
               </Select>
             </div>
           </form>
+        </Modal>
+
+        {/* Client Details Modal */}
+        <Modal
+          isOpen={isClientDetailsModalOpen}
+          onClose={closeClientDetailsModal}
+          title={`Client Details: ${selectedClientForDetails?.name || 'N/A'}`}
+          description={selectedClientForDetails?.email}
+          footer={
+            <Button onClick={closeClientDetailsModal}>Close</Button>
+          }
+        >
+          {selectedClientForDetails && (
+            <div className="space-y-4 text-gray-700">
+              <p><strong>Client ID:</strong> {selectedClientForDetails.id}</p>
+              <p><strong>Name:</strong> {selectedClientForDetails.name}</p>
+              <p><strong>Email:</strong> {selectedClientForDetails.email}</p>
+              <p><strong>Status:</strong>
+                <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                  selectedClientForDetails.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>
+                  {selectedClientForDetails.status}
+                </span>
+              </p>
+              <p><strong>Registered Date:</strong> {new Date(selectedClientForDetails.registeredDate).toLocaleDateString()}</p>
+            </div>
+          )}
         </Modal>
       </CardContent>
     </Card>
