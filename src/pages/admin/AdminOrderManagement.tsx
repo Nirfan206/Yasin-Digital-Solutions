@@ -14,7 +14,7 @@ import { Button } from '../../components/ui/button'; // Import Button
 import { Label } from '../../components/ui/label'; // Import Label
 import Modal from '../../components/Modal'; // Import Modal
 import { Order, Job, Employee } from '../../types/api';
-import { Loader2, Briefcase } from 'lucide-react'; // Import Briefcase icon
+import { Loader2, Briefcase, Eye } from 'lucide-react'; // Import Eye icon
 
 const AdminOrderManagement = () => {
   const { token } = useAuth();
@@ -33,6 +33,11 @@ const AdminOrderManagement = () => {
   const [jobPriority, setJobPriority] = useState<Job['priority']>('Medium');
   const [jobEmployeeId, setJobEmployeeId] = useState<string | undefined>(undefined);
   const [creatingJob, setCreatingJob] = useState(false);
+
+  // State for "View Order Details" modal
+  const [isOrderDetailsModalOpen, setIsOrderDetailsModalOpen] = useState(false);
+  const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<Order | null>(null);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -144,6 +149,16 @@ const AdminOrderManagement = () => {
     } finally {
       setCreatingJob(false);
     }
+  };
+
+  const openOrderDetailsModal = (order: Order) => {
+    setSelectedOrderForDetails(order);
+    setIsOrderDetailsModalOpen(true);
+  };
+
+  const closeOrderDetailsModal = () => {
+    setIsOrderDetailsModalOpen(false);
+    setSelectedOrderForDetails(null);
   };
 
   const filteredOrders = useMemo(() => {
@@ -270,6 +285,14 @@ const AdminOrderManagement = () => {
                           <Briefcase size={18} />
                         </Button>
                       )}
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => openOrderDetailsModal(order)}
+                        title="View Order Details"
+                      >
+                        <Eye size={18} />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -366,6 +389,39 @@ const AdminOrderManagement = () => {
               </Select>
             </div>
           </form>
+        </Modal>
+
+        {/* Order Details Modal */}
+        <Modal
+          isOpen={isOrderDetailsModalOpen}
+          onClose={closeOrderDetailsModal}
+          title={`Order Details: #${selectedOrderForDetails?._id?.slice(-6)}`}
+          description={`Service: ${selectedOrderForDetails?.serviceType}`}
+          footer={
+            <Button onClick={closeOrderDetailsModal}>Close</Button>
+          }
+        >
+          {selectedOrderForDetails && (
+            <div className="space-y-4 text-gray-700">
+              <p><strong>Client:</strong> {selectedOrderForDetails.clientName || selectedOrderForDetails.clientEmail || 'N/A'}</p>
+              <p><strong>Client Email:</strong> {selectedOrderForDetails.clientEmail || 'N/A'}</p>
+              <p><strong>Service Type:</strong> {selectedOrderForDetails.serviceType}</p>
+              <p><strong>Status:</strong>
+                <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                  selectedOrderForDetails.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                  selectedOrderForDetails.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                  selectedOrderForDetails.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                  selectedOrderForDetails.status === 'Under Review' ? 'bg-purple-100 text-purple-800' :
+                  'bg-red-100 text-red-800'
+                }`}>
+                  {selectedOrderForDetails.status}
+                </span>
+              </p>
+              <p><strong>Order Date:</strong> {new Date(selectedOrderForDetails.orderDate).toLocaleString()}</p>
+              <p><strong>Requirements:</strong></p>
+              <p className="whitespace-pre-wrap border p-3 rounded-md bg-gray-50">{selectedOrderForDetails.requirements}</p>
+            </div>
+          )}
         </Modal>
       </CardContent>
     </Card>
