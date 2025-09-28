@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'; // Import shadcn/ui Select
 import { Order } from '../../types/api'; // Import Order interface
+import { Loader2 } from 'lucide-react'; // Import Loader2 icon for loading state
 
 const AdminOrderManagement = () => {
   const { token } = useAuth();
@@ -87,9 +88,8 @@ const AdminOrderManagement = () => {
                   <TableRow key={order._id}>
                     <TableCell className="font-medium">{order._id}</TableCell>
                     <TableCell>
-                      {order.clientName && order.clientEmail
-                        ? `${order.clientName} (${order.clientEmail})`
-                        : order.clientName || order.clientEmail || 'N/A'}
+                      {order.clientName || order.clientEmail || 'N/A'}
+                      {order.clientName && order.clientEmail && ` (${order.clientEmail})`}
                     </TableCell>
                     <TableCell>{order.serviceType}</TableCell>
                     <TableCell className="max-w-xs truncate">{order.requirements}</TableCell>
@@ -112,7 +112,14 @@ const AdminOrderManagement = () => {
                         disabled={updatingStatus === order._id}
                       >
                         <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Update Status" />
+                          {updatingStatus === order._id ? (
+                            <div className="flex items-center space-x-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <span>Updating...</span>
+                            </div>
+                          ) : (
+                            <SelectValue placeholder="Update Status" />
+                          )}
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Pending">Pending</SelectItem>
