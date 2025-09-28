@@ -26,6 +26,28 @@ export const loginUser = async (email: string, password: string): Promise<AuthRe
   return response.json();
 };
 
+export const verifyOtp = async (userId: string, otp: string): Promise<AuthResponse> => {
+  const response = await fetch(`${API_BASE_URL}/verify-otp`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ userId, otp }),
+  });
+  return response.json();
+};
+
+export const requestOtp = async (userId: string): Promise<AuthResponse> => {
+  const response = await fetch(`${API_BASE_URL}/request-otp`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ userId }),
+  });
+  return response.json();
+};
+
 export const fetchCurrentUser = async (token: string): Promise<AuthResponse> => {
   const response = await fetch(`${API_BASE_URL}/me`, {
     method: 'GET',

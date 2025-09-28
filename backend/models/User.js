@@ -22,6 +22,14 @@ const userSchema = mongoose.Schema(
       enum: ['client', 'employee', 'admin'],
       default: 'client',
     },
+    otp: { // New field for One-Time Password
+      type: String,
+      required: false,
+    },
+    otpExpires: { // New field for OTP expiration time
+      type: Date,
+      required: false,
+    },
   },
   {
     timestamps: true,

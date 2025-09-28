@@ -20,6 +20,8 @@ export interface AuthResponse {
   user?: UserProfile;
   message?: string;
   error?: string;
+  otpRequired?: boolean; // New field
+  userId?: string; // New field
 }
 
 export interface Order {
