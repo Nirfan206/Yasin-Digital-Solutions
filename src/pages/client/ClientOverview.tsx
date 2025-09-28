@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { ListOrdered, CalendarCheck, ClipboardList, Hourglass, SearchCheck, CheckCircle2 } from 'lucide-react'; // Added Hourglass and SearchCheck for new statuses
+import { ListOrdered, CalendarCheck, ClipboardList, Hourglass, SearchCheck, CheckCircle2, XCircle } from 'lucide-react'; // Added XCircle for cancelled orders
 import { useAuth } from '../../context/AuthContext';
 import { fetchClientOrders, fetchClientSubscriptions } from '../../api/client';
 import { showError } from '../../utils/toast';
@@ -16,6 +16,7 @@ const ClientOverview = () => {
   const [inProgressOrdersCount, setInProgressOrdersCount] = useState(0); // For 'In Progress' status
   const [underReviewOrdersCount, setUnderReviewOrdersCount] = useState(0); // For 'Under Review' status
   const [completedOrdersCount, setCompletedOrdersCount] = useState(0); // For 'Completed' status
+  const [cancelledOrdersCount, setCancelledOrdersCount] = useState(0); // New state for 'Cancelled' status
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,6 +35,7 @@ const ClientOverview = () => {
           setInProgressOrdersCount(ordersData.filter(order => order.status === 'In Progress').length);
           setUnderReviewOrdersCount(ordersData.filter(order => order.status === 'Under Review').length);
           setCompletedOrdersCount(ordersData.filter(order => order.status === 'Completed').length);
+          setCancelledOrdersCount(ordersData.filter(order => order.status === 'Cancelled').length); // Calculate cancelled orders
         } else if (ordersError) {
           showError(ordersError);
         }
@@ -129,6 +131,18 @@ const ClientOverview = () => {
           <div className="text-2xl font-bold">{completedOrdersCount}</div>
           <p className="text-xs text-muted-foreground">
             You have completed {completedOrdersCount} orders.
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Cancelled Orders</CardTitle>
+          <XCircle className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{cancelledOrdersCount}</div>
+          <p className="text-xs text-muted-foreground">
+            {cancelledOrdersCount} orders have been cancelled.
           </p>
         </CardContent>
       </Card>
