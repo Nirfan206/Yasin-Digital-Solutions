@@ -64,3 +64,23 @@ export const fetchCompletedJobs = async (token: string): Promise<ApiResponse<Job
     return { error: error.message || 'An unknown error occurred' };
   }
 };
+
+// New function to fetch all jobs for the employee (for overview)
+export const fetchEmployeeAllJobs = async (token: string): Promise<ApiResponse<Job[]>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/jobs/all`, { // Assuming a new backend endpoint '/api/employee/jobs/all'
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch all employee jobs');
+    }
+    return { data };
+  } catch (error: any) {
+    return { error: error.message || 'An unknown error occurred' };
+  }
+};
