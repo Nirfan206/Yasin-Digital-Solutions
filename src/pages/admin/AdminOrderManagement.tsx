@@ -10,11 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Input } from '../../components/ui/input';
-import { Button } from '../../components/ui/button'; // Import Button
-import { Label } from '../../components/ui/label'; // Import Label
-import Modal from '../../components/Modal'; // Import Modal
+import { Button } from '../../components/ui/button';
 import { Order, Job, Employee } from '../../types/api';
 import { Loader2, Briefcase, Eye } from 'lucide-react'; // Import Eye icon
+import OrderDetailsModal from '../../components/admin/orders/OrderDetailsModal'; // Import reusable OrderDetailsModal
+import CreateJobFromOrderModal from '../../components/admin/orders/CreateJobFromOrderModal'; // Import new CreateJobFromOrderModal
 
 const AdminOrderManagement = () => {
   const { token } = useAuth();
@@ -28,10 +28,6 @@ const AdminOrderManagement = () => {
   // State for "Create Job" modal
   const [isCreateJobModalOpen, setIsCreateJobModalOpen] = useState(false);
   const [selectedOrderForJob, setSelectedOrderForJob] = useState<Order | null>(null);
-  const [jobTitle, setJobTitle] = useState('');
-  const [jobDueDate, setJobDueDate] = useState('');
-  const [jobPriority, setJob['priority']>('Medium');
-  const [jobEmployeeId, setJobEmployeeId] = useState<string | undefined>(undefined);
   const [creatingJob, setCreatingJob] = useState(false);
 
   // State for "View Order Details" modal
@@ -94,10 +90,6 @@ const AdminOrderManagement = () => {
 
   const openCreateJobModal = (order: Order) => {
     setSelectedOrderForJob(order);
-    setJobTitle(order.serviceType); // Pre-fill title with service type
-    setJobDueDate(''); // Clear due date
-    setJobPriority('Medium');
-    setJobEmployeeId(undefined);
     setIsCreateJobModalOpen(true);
   };
 
@@ -107,14 +99,17 @@ const AdminOrderManagement = () => {
     setCreatingJob(false);
   };
 
-  const handleCreateJobSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!token || !selectedOrderForJob) {
-      showError('Authentication token or selected order missing.');
-      return;
-    }
-    if (!jobTitle || !jobDueDate || !jobPriority) {
-      showError('Please fill in all required job fields.');
+  const handleCreateJobSubmit = async (jobData: {
+    title: string;
+    client: string;
+    dueDate: string;
+    priority: Job['priority'];
+    status: Job['status'];
+    employeeId?: string;
+    orderId: string;
+  }) => {
+    if (!token) {
+      showError('Authentication token missing.');
       return;
     }
 
@@ -122,18 +117,18 @@ const AdminOrderManagement = () => {
     try {
       const { data: newJob, error } = await createJob(
         token,
-        jobTitle,
-        selectedOrderForJob.clientName || selectedOrderForJob.clientEmail || 'N/A',
-        jobDueDate,
-        jobPriority,
-        'Assigned', // Default status for new job
-        jobEmployeeId,
-        selectedOrderForJob._id // Link to the order
+        jobData.title,
+        jobData.client,
+        jobData.dueDate,
+        jobData.priority,
+        jobData.status,
+        jobData.employeeId,
+        jobData.orderId
       );
 
       if (newJob) {
         showSuccess('Job created successfully and linked to order!');
-        // Refresh orders to reflect status change
+        // Refresh orders to reflect status change (order status should change to 'In Progress')
         const { data: updatedOrders, error: ordersError } = await fetchAllOrders(token);
         if (updatedOrders) {
           setOrders(updatedOrders);
@@ -302,128 +297,21 @@ const AdminOrderManagement = () => {
         )}
 
         {/* Create Job Modal */}
-        <Modal
+        <CreateJobFromOrderModal
           isOpen={isCreateJobModalOpen}
           onClose={closeCreateJobModal}
-          title={`Create Job for Order #${selectedOrderForJob?._id?.slice(-6)}`}
-          description={`Service: ${selectedOrderForJob?.serviceType}`}
-          footer={
-            <div className="flex justify-end space-x-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={closeCreateJobModal}
-                disabled={creatingJob}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                form="create-job-form"
-                disabled={creatingJob}
-              >
-                {creatingJob ? 'Creating Job...' : 'Create Job'}
-              </Button>
-            </div>
-          }
-        >
-          <form id="create-job-form" onSubmit={handleCreateJobSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="jobTitle">Job Title</Label>
-              <Input
-                type="text"
-                id="jobTitle"
-                value={jobTitle}
-                onChange={(e) => setJobTitle(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="jobClient">Client</Label>
-              <Input
-                type="text"
-                id="jobClient"
-                value={selectedOrderForJob?.clientName || selectedOrderForJob?.clientEmail || ''}
-                disabled
-              />
-            </div>
-            <div>
-              <Label htmlFor="jobDueDate">Due Date</Label>
-              <Input
-                type="date"
-                id="jobDueDate"
-                value={jobDueDate}
-                onChange={(e) => setJobDueDate(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="jobPriority">Priority</Label>
-              <Select value={jobPriority} onValueChange={(value: Job['priority']) => setJobPriority(value)} disabled={creatingJob}>
-                <SelectTrigger id="jobPriority">
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="Low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="jobEmployee">Assign Employee</Label>
-              <Select
-                value={jobEmployeeId || ''}
-                onValueChange={(value: string) => setJobEmployeeId(value === 'unassigned' ? undefined : value)}
-                disabled={creatingJob}
-              >
-                <SelectTrigger id="jobEmployee">
-                  <SelectValue placeholder="Select employee" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unassigned">Unassigned</SelectItem>
-                  {employees.map(emp => (
-                    <SelectItem key={emp.id} value={emp.id}>{emp.name} ({emp.email})</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </form>
-        </Modal>
+          order={selectedOrderForJob}
+          employees={employees}
+          onSubmit={handleCreateJobSubmit}
+          loading={creatingJob}
+        />
 
         {/* Order Details Modal */}
-        <Modal
+        <OrderDetailsModal
           isOpen={isOrderDetailsModalOpen}
           onClose={closeOrderDetailsModal}
-          title={`Order Details: #${selectedOrderForDetails?._id?.slice(-6)}`}
-          description={`Service: ${selectedOrderForDetails?.serviceType}`}
-          footer={
-            <Button onClick={closeOrderDetailsModal}>Close</Button>
-          }
-        >
-          {selectedOrderForDetails && (
-            <div className="space-y-4 text-gray-700">
-              <p><strong>Order ID:</strong> {selectedOrderForDetails._id}</p> {/* Full ID in modal */}
-              <p><strong>Client:</strong> {selectedOrderForDetails.clientName || selectedOrderForDetails.clientEmail || 'N/A'}</p>
-              <p><strong>Client Email:</strong> {selectedOrderForDetails.clientEmail || 'N/A'}</p>
-              <p><strong>Service Type:</strong> {selectedOrderForDetails.serviceType}</p>
-              <p><strong>Status:</strong>
-                <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                  selectedOrderForDetails.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                  selectedOrderForDetails.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                  selectedOrderForDetails.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                  selectedOrderForDetails.status === 'Under Review' ? 'bg-purple-100 text-purple-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {selectedOrderForDetails.status}
-                </span>
-              </p>
-              <p><strong>Order Date:</strong> {new Date(selectedOrderForDetails.orderDate).toLocaleString()}</p>
-              <p><strong>Requirements:</strong></p>
-              <p className="whitespace-pre-wrap border p-3 rounded-md bg-gray-50">{selectedOrderForDetails.requirements}</p>
-            </div>
-          )}
-        </Modal>
+          order={selectedOrderForDetails}
+        />
       </CardContent>
     </Card>
   );
