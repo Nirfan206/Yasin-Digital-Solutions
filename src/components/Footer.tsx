@@ -3,6 +3,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Linkedin } from 'lucide-react'; // Importing social media icons
+import { Button } from './ui/button'; // Import shadcn/ui Button
 
 const Footer = () => {
   return (
@@ -35,16 +36,24 @@ const Footer = () => {
           <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
           <ul className="space-y-2">
             <li>
-              <Link to="/" className="text-gray-400 hover:text-blue-400 transition-colors">Home</Link>
+              <Button asChild variant="link" className="p-0 h-auto text-gray-400 hover:text-blue-400 transition-colors justify-start">
+                <Link to="/">Home</Link>
+              </Button>
             </li>
             <li>
-              <Link to="/services" className="text-gray-400 hover:text-blue-400 transition-colors">Services</Link>
+              <Button asChild variant="link" className="p-0 h-auto text-gray-400 hover:text-blue-400 transition-colors justify-start">
+                <Link to="/services">Services</Link>
+              </Button>
             </li>
             <li>
-              <Link to="/login" className="text-gray-400 hover:text-blue-400 transition-colors">Login</Link>
+              <Button asChild variant="link" className="p-0 h-auto text-gray-400 hover:text-blue-400 transition-colors justify-start">
+                <Link to="/login">Login</Link>
+              </Button>
             </li>
             <li>
-              <Link to="/register" className="text-gray-400 hover:text-blue-400 transition-colors">Register</Link>
+              <Button asChild variant="link" className="p-0 h-auto text-gray-400 hover:text-blue-400 transition-colors justify-start">
+                <Link to="/register">Register</Link>
+              </Button>
             </li>
           </ul>
         </div>
