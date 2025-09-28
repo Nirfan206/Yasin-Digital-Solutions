@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
+import { useAuth } from '../../context/AuthContext';
+import { fetchClientOrders, createClientOrder } from '../../api/client'; // Import API functions
 
 interface Order {
-  id: string;
+  _id: string; // Changed to _id to match typical MongoDB IDs
   serviceType: string;
   requirements: string;
   status: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled';
@@ -12,14 +14,30 @@ interface Order {
 }
 
 const ClientOrders = () => {
+  const { token } = useAuth();
   const [serviceType, setServiceType] = useState('');
   const [requirements, setRequirements] = useState('');
   const [loading, setLoading] = useState(false);
-  const [orders, setOrders] = useState<Order[]>([
-    // Mock data for demonstration
-    { id: 'ORD001', serviceType: 'Website Building', requirements: 'E-commerce site for clothing brand.', status: 'In Progress', orderDate: '2023-01-15' },
-    { id: 'ORD002', serviceType: 'Digital Marketing', requirements: 'SEO campaign for local business.', status: 'Completed', orderDate: '2023-02-01' },
-  ]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [fetchingOrders, setFetchingOrders] = useState(true);
+
+  useEffect(() => {
+    const getOrders = async () => {
+      if (!token) {
+        setFetchingOrders(false);
+        return;
+      }
+      setFetchingOrders(true);
+      const { data, error } = await fetchClientOrders(token);
+      if (data) {
+        setOrders(data);
+      } else if (error) {
+        showError(error);
+      }
+      setFetchingOrders(false);
+    };
+    getOrders();
+  }, [token]);
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,24 +45,22 @@ const ClientOrders = () => {
       showError('Please select a service type and describe your requirements.');
       return;
     }
+    if (!token) {
+      showError('You must be logged in to place an order.');
+      return;
+    }
 
     setLoading(true);
     try {
-      // In a real MERN app, you'd send a POST request to your backend to create a new order
-      // For now, we'll just simulate success and add to mock data
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-
-      const newOrder: Order = {
-        id: `ORD${String(orders.length + 1).padStart(3, '0')}`,
-        serviceType,
-        requirements,
-        status: 'Pending',
-        orderDate: new Date().toISOString().split('T')[0],
-      };
-      setOrders([...orders, newOrder]);
-      showSuccess('Order placed successfully! We will review your request shortly.');
-      setServiceType('');
-      setRequirements('');
+      const { data: newOrder, error } = await createClientOrder(token, serviceType, requirements);
+      if (newOrder) {
+        setOrders(prevOrders => [...prevOrders, newOrder]);
+        showSuccess('Order placed successfully! We will review your request shortly.');
+        setServiceType('');
+        setRequirements('');
+      } else if (error) {
+        showError(error);
+      }
     } catch (error) {
       showError('Failed to place order. Please try again.');
     } finally {
@@ -96,7 +112,9 @@ const ClientOrders = () => {
 
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">Your Orders</h2>
-        {orders.length === 0 ? (
+        {fetchingOrders ? (
+          <p className="text-gray-600">Loading orders...</p>
+        ) : orders.length === 0 ? (
           <p className="text-gray-600">You have no orders yet.</p>
         ) : (
           <div className="overflow-x-auto">
@@ -112,8 +130,8 @@ const ClientOrders = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {orders.map((order) => (
-                  <tr key={order.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{order.id}</td>
+                  <tr key={order._id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{order._id}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.serviceType}</td>
                     <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{order.requirements}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
