@@ -195,7 +195,7 @@ const AdminJobManagement = () => {
 
     const matchesStatus = filterStatus === 'all' || job.status === filterStatus;
     const matchesPriority = filterPriority === 'all' || job.priority === filterPriority;
-    const matchesEmployee = filterEmployeeId === 'all' || job.employeeId === filterEmployeeId;
+    const matchesEmployee = filterEmployeeId === 'all' || (filterEmployeeId === 'unassigned' ? !job.employeeId : job.employeeId === filterEmployeeId);
 
     return matchesSearch && matchesStatus && matchesPriority && matchesEmployee;
   });
