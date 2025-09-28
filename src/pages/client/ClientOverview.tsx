@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { ListOrdered, CalendarCheck, ClipboardList, CheckCircle2 } from 'lucide-react'; // Added CheckCircle2 for completed orders
+import { ListOrdered, CalendarCheck, ClipboardList, Hourglass, SearchCheck, CheckCircle2 } from 'lucide-react'; // Added Hourglass and SearchCheck for new statuses
 import { useAuth } from '../../context/AuthContext';
 import { fetchClientOrders, fetchClientSubscriptions } from '../../api/client';
 import { showError } from '../../utils/toast';
@@ -12,8 +12,10 @@ const ClientOverview = () => {
   const { token } = useAuth();
   const [totalOrders, setTotalOrders] = useState(0);
   const [activeSubscriptions, setActiveSubscriptions] = useState(0);
-  const [pendingOrders, setPendingOrders] = useState(0);
-  const [completedOrders, setCompletedOrders] = useState(0); // New state for completed orders
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0); // For 'Pending' status
+  const [inProgressOrdersCount, setInProgressOrdersCount] = useState(0); // For 'In Progress' status
+  const [underReviewOrdersCount, setUnderReviewOrdersCount] = useState(0); // For 'Under Review' status
+  const [completedOrdersCount, setCompletedOrdersCount] = useState(0); // For 'Completed' status
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,8 +30,10 @@ const ClientOverview = () => {
         const { data: ordersData, error: ordersError } = await fetchClientOrders(token);
         if (ordersData) {
           setTotalOrders(ordersData.length);
-          setPendingOrders(ordersData.filter(order => order.status === 'Pending' || order.status === 'In Progress' || order.status === 'Under Review').length);
-          setCompletedOrders(ordersData.filter(order => order.status === 'Completed').length); // Calculate completed orders
+          setPendingOrdersCount(ordersData.filter(order => order.status === 'Pending').length);
+          setInProgressOrdersCount(ordersData.filter(order => order.status === 'In Progress').length);
+          setUnderReviewOrdersCount(ordersData.filter(order => order.status === 'Under Review').length);
+          setCompletedOrdersCount(ordersData.filter(order => order.status === 'Completed').length);
         } else if (ordersError) {
           showError(ordersError);
         }
@@ -55,7 +59,7 @@ const ClientOverview = () => {
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4"> {/* Adjusted grid for 4 cards */}
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"> {/* Adjusted grid for 3 cards per row */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
@@ -86,21 +90,45 @@ const ClientOverview = () => {
           <ClipboardList className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{pendingOrders}</div>
+          <div className="text-2xl font-bold">{pendingOrdersCount}</div>
           <p className="text-xs text-muted-foreground">
-            {pendingOrders} orders are currently pending review or in progress.
+            {pendingOrdersCount} orders are awaiting review.
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Orders In Progress</CardTitle>
+          <Hourglass className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{inProgressOrdersCount}</div>
+          <p className="text-xs text-muted-foreground">
+            {inProgressOrdersCount} orders are currently being worked on.
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Orders Under Review</CardTitle>
+          <SearchCheck className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{underReviewOrdersCount}</div>
+          <p className="text-xs text-muted-foreground">
+            {underReviewOrdersCount} orders are under internal review.
           </p>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Completed Orders</CardTitle>
-          <CheckCircle2 className="h-4 w-4 text-muted-foreground" /> {/* New card for completed orders */}
+          <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{completedOrders}</div>
+          <div className="text-2xl font-bold">{completedOrdersCount}</div>
           <p className="text-xs text-muted-foreground">
-            You have completed {completedOrders} orders.
+            You have completed {completedOrdersCount} orders.
           </p>
         </CardContent>
       </Card>
