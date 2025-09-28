@@ -4,6 +4,7 @@ import React, { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { User, Briefcase, Settings, LayoutDashboard, ListOrdered, CalendarCheck, Users, Building2 } from 'lucide-react';
+import { Button } from './ui/button'; // Import shadcn/ui Button
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -25,13 +26,16 @@ const DashboardLayout = ({ children, title, sidebarNav }: DashboardLayoutProps) 
           <ul className="space-y-2">
             {sidebarNav.map((item) => (
               <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className="flex items-center space-x-3 p-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200"
+                <Button
+                  asChild // Renders the Link component inside the Button
+                  variant="ghost"
+                  className="w-full justify-start flex items-center space-x-3 p-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200"
                 >
-                  <item.icon size={20} />
-                  <span>{item.label}</span>
-                </Link>
+                  <Link to={item.path}>
+                    <item.icon size={20} />
+                    <span>{item.label}</span>
+                  </Link>
+                </Button>
               </li>
             ))}
           </ul>
@@ -42,13 +46,13 @@ const DashboardLayout = ({ children, title, sidebarNav }: DashboardLayoutProps) 
               Logged in as: <span className="font-medium text-white">{user.email}</span>
             </div>
           )}
-          <button
+          <Button
             onClick={logout}
             className="w-full flex items-center justify-center space-x-2 p-3 rounded-md bg-red-600 hover:bg-red-700 text-white transition-colors duration-200"
           >
             <User size={20} />
             <span>Logout</span>
-          </button>
+          </Button>
         </div>
       </aside>
 
