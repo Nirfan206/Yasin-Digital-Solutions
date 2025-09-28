@@ -1,6 +1,6 @@
 "use client";
 
-import { ApiResponse, UserProfile, Order, Client, Employee } from '../types/api';
+import { ApiResponse, UserProfile, Order, Client, Employee, Job } from '../types/api';
 
 // This file will contain functions to interact with your MERN backend's admin-specific endpoints.
 // You will need to replace 'http://localhost:5000' with your actual backend URL.
@@ -226,12 +226,109 @@ export const deleteEmployee = async (token: string, employeeId: string): Promise
   }
 };
 
+// Job Management (New)
+export const fetchAllJobs = async (token: string): Promise<ApiResponse<Job[]>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/jobs`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch all jobs');
+    }
+    return { data };
+  } catch (error: any) {
+    return { error: error.message || 'An unknown error occurred' };
+  }
+};
+
+export const createJob = async (
+  token: string,
+  title: string,
+  client: string,
+  dueDate: string,
+  priority: Job['priority'],
+  status: Job['status'],
+  employeeId?: string
+): Promise<ApiResponse<Job>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/jobs`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ title, client, dueDate, priority, status, employeeId }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to create job');
+    }
+    return { data };
+  } catch (error: any) {
+    return { error: error.message || 'An unknown error occurred' };
+  }
+};
+
+export const updateJob = async (
+  token: string,
+  jobId: string,
+  title: string,
+  client: string,
+  dueDate: string,
+  priority: Job['priority'],
+  status: Job['status'],
+  employeeId?: string
+): Promise<ApiResponse<Job>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ title, client, dueDate, priority, status, employeeId }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to update job');
+    }
+    return { data };
+  } catch (error: any) {
+    return { error: error.message || 'An unknown error occurred' };
+  }
+};
+
+export const deleteJob = async (token: string, jobId: string): Promise<ApiResponse<{ message: string }>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/jobs/${jobId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to delete job');
+    }
+    return { data };
+  } catch (error: any) {
+    return { error: error.message || 'An unknown error occurred' };
+  }
+};
+
+
 // New functions for Admin Overview
-export const fetchAdminOverviewData = async (token: string): Promise<ApiResponse<{ totalClients: number; totalEmployees: number; totalOrders: number }>> => {
+export const fetchAdminOverviewData = async (token: string): Promise<ApiResponse<{ totalClients: number; totalEmployees: number; totalOrders: number; totalJobs: number }>> => {
   try {
     // In a real backend, this would be a single endpoint returning all counts.
     // For now, we'll simulate by fetching all and getting the length.
-    const [clientsResponse, employeesResponse, ordersResponse] = await Promise.all([
+    const [clientsResponse, employeesResponse, ordersResponse, jobsResponse] = await Promise.all([
       fetch(`${API_BASE_URL}/clients`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -244,14 +341,19 @@ export const fetchAdminOverviewData = async (token: string): Promise<ApiResponse
         method: 'GET',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       }),
+      fetch(`${API_BASE_URL}/jobs`, { // Fetch all jobs for overview
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      }),
     ]);
 
     const clientsData = await clientsResponse.json();
     const employeesData = await employeesResponse.json();
     const ordersData = await ordersResponse.json();
+    const jobsData = await jobsResponse.json();
 
-    if (!clientsResponse.ok || !employeesResponse.ok || !ordersResponse.ok) {
-      throw new Error(clientsData.error || employeesData.error || ordersData.error || 'Failed to fetch overview data');
+    if (!clientsResponse.ok || !employeesResponse.ok || !ordersResponse.ok || !jobsResponse.ok) {
+      throw new Error(clientsData.error || employeesData.error || ordersData.error || jobsData.error || 'Failed to fetch overview data');
     }
 
     return {
@@ -259,6 +361,7 @@ export const fetchAdminOverviewData = async (token: string): Promise<ApiResponse
         totalClients: clientsData.length,
         totalEmployees: employeesData.length,
         totalOrders: ordersData.length,
+        totalJobs: jobsData.length, // Include total jobs
       },
     };
   } catch (error: any) {
