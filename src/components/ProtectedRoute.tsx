@@ -3,6 +3,7 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import LoadingSpinner from './LoadingSpinner'; // Import LoadingSpinner
 
 interface ProtectedRouteProps {
   allowedRoles?: string[];
@@ -12,7 +13,11 @@ const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div className="flex justify-center items-center min-h-screen">Loading...</div>; // Or a spinner component
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <LoadingSpinner size={40} /> {/* Use the LoadingSpinner component */}
+      </div>
+    );
   }
 
   if (!user) {
