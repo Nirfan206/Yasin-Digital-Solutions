@@ -1,45 +1,74 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
+import { useAuth } from '../../context/AuthContext';
+import { fetchAssignedJobs, updateJobStatus } from '../../api/employee'; // Import API functions
 
 interface Job {
-  id: string;
+  _id: string;
   title: string;
   client: string;
   dueDate: string;
-  status: 'Assigned' | 'In Progress' | 'Under Review';
+  status: 'Assigned' | 'In Progress' | 'Under Review' | 'Completed';
   priority: 'High' | 'Medium' | 'Low';
 }
 
 const EmployeeAssignedJobs = () => {
-  const [jobs, setJobs] = useState<Job[]>([
-    // Mock data for demonstration
-    { id: 'JOB001', title: 'Develop E-commerce Frontend', client: 'Alice Smith', dueDate: '2024-04-30', status: 'In Progress', priority: 'High' },
-    { id: 'JOB002', title: 'SEO Keyword Research', client: 'Bob Johnson', dueDate: '2024-04-20', status: 'Assigned', priority: 'Medium' },
-    { id: 'JOB003', title: 'Bug Fix: Login Page', client: 'Charlie Brown', dueDate: '2024-04-15', status: 'Under Review', priority: 'High' },
-  ]);
+  const { token } = useAuth();
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [fetchingJobs, setFetchingJobs] = useState(true);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null); // To track which job is being updated
+
+  useEffect(() => {
+    const getAssignedJobs = async () => {
+      if (!token) {
+        setFetchingJobs(false);
+        return;
+      }
+      setFetchingJobs(true);
+      const { data, error } = await fetchAssignedJobs(token);
+      if (data) {
+        setJobs(data);
+      } else if (error) {
+        showError(error);
+      }
+      setFetchingJobs(false);
+    };
+    getAssignedJobs();
+  }, [token]);
 
   const handleStatusChange = async (jobId: string, newStatus: Job['status']) => {
-    // In a real MERN app, you'd send a PUT request to your backend to update the job status
-    // For now, we'll simulate success and update mock data
+    if (!token) {
+      showError('You must be logged in to update job status.');
+      return;
+    }
+    setUpdatingStatus(jobId);
     try {
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
-      setJobs(prevJobs =>
-        prevJobs.map(job =>
-          job.id === jobId ? { ...job, status: newStatus } : job
-        )
-      );
-      showSuccess(`Job ${jobId} status updated to ${newStatus}.`);
+      const { data: updatedJob, error } = await updateJobStatus(token, jobId, newStatus);
+      if (updatedJob) {
+        setJobs(prevJobs =>
+          prevJobs.map(job =>
+            job._id === jobId ? { ...job, status: updatedJob.status } : job
+          )
+        );
+        showSuccess(`Job ${jobId} status updated to ${newStatus}.`);
+      } else if (error) {
+        showError(error);
+      }
     } catch (error) {
       showError('Failed to update job status.');
+    } finally {
+      setUpdatingStatus(null);
     }
   };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">Your Assigned Jobs</h2>
-      {jobs.length === 0 ? (
+      {fetchingJobs ? (
+        <p className="text-gray-600">Loading assigned jobs...</p>
+      ) : jobs.length === 0 ? (
         <p className="text-gray-600">You currently have no assigned jobs.</p>
       ) : (
         <div className="overflow-x-auto">
@@ -57,8 +86,8 @@ const EmployeeAssignedJobs = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {jobs.map((job) => (
-                <tr key={job.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{job.id}</td>
+                <tr key={job._id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{job._id}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{job.title}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{job.client}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{job.dueDate}</td>
@@ -84,12 +113,14 @@ const EmployeeAssignedJobs = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <select
                       value={job.status}
-                      onChange={(e) => handleStatusChange(job.id, e.target.value as Job['status'])}
+                      onChange={(e) => handleStatusChange(job._id, e.target.value as Job['status'])}
                       className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      disabled={updatingStatus === job._id}
                     >
                       <option value="Assigned">Assigned</option>
                       <option value="In Progress">In Progress</option>
                       <option value="Under Review">Under Review</option>
+                      <option value="Completed">Completed</option>
                     </select>
                   </td>
                 </tr>

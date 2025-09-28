@@ -1,26 +1,53 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { fetchCompletedJobs } from '../../api/employee'; // Import API function
+import { showError } from '../../utils/toast';
 
 interface CompletedJob {
-  id: string;
+  _id: string;
   title: string;
   client: string;
-  completionDate: string;
-  feedback: string;
+  completionDate: string; // Assuming the backend provides this
+  feedback?: string; // Optional feedback field
 }
 
 const EmployeeCompletedJobs = () => {
-  const completedJobs: CompletedJob[] = [
-    // Mock data for demonstration
-    { id: 'JOB004', title: 'Design Landing Page', client: 'Green Solutions', completionDate: '2024-03-25', feedback: 'Excellent work, very satisfied!' },
-    { id: 'JOB005', title: 'Setup CRM Integration', client: 'Tech Innovations', completionDate: '2024-03-10', feedback: 'Smooth integration, no issues.' },
-  ];
+  const { token } = useAuth();
+  const [completedJobs, setCompletedJobs] = useState<CompletedJob[]>([]);
+  const [fetchingJobs, setFetchingJobs] = useState(true);
+
+  useEffect(() => {
+    const getCompletedJobs = async () => {
+      if (!token) {
+        setFetchingJobs(false);
+        return;
+      }
+      setFetchingJobs(true);
+      const { data, error } = await fetchCompletedJobs(token);
+      if (data) {
+        setCompletedJobs(data.map(job => ({
+          _id: job._id,
+          title: job.title,
+          client: job.client,
+          completionDate: job.dueDate, // Using dueDate as completionDate for now
+          feedback: "No feedback yet." // Placeholder feedback
+        })));
+      } else if (error) {
+        showError(error);
+      }
+      setFetchingJobs(false);
+    };
+    getCompletedJobs();
+  }, [token]);
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">Your Completed Jobs</h2>
-      {completedJobs.length === 0 ? (
+      {fetchingJobs ? (
+        <p className="text-gray-600">Loading completed jobs...</p>
+      ) : completedJobs.length === 0 ? (
         <p className="text-gray-600">You have not completed any jobs yet.</p>
       ) : (
         <div className="overflow-x-auto">
@@ -36,8 +63,8 @@ const EmployeeCompletedJobs = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {completedJobs.map((job) => (
-                <tr key={job.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{job.id}</td>
+                <tr key={job._id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{job._id}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{job.title}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{job.client}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{job.completionDate}</td>
