@@ -7,8 +7,8 @@ import { fetchAllOrders, updateOrderStatus } from '../../api/admin/orders';
 import { createJob } from '../../api/admin/jobs';
 import { fetchAllEmployees } from '../../api/admin/employees';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import OrderFilters from '../../components/admin/orders/OrderFilters'; // New import
-import OrderTable from '../../components/admin/orders/OrderTable'; // New import
+import OrderFilters from '../../components/admin/orders/OrderFilters';
+import OrderTable from '../../components/admin/orders/OrderTable';
 import { Order, Job, Employee } from '../../types/api';
 import OrderDetailsModal from '../../components/admin/orders/OrderDetailsModal';
 import CreateJobFromOrderModal from '../../components/admin/orders/CreateJobFromOrderModal';
