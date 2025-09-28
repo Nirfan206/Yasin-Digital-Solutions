@@ -30,7 +30,7 @@ const AdminOrderManagement = () => {
   const [selectedOrderForJob, setSelectedOrderForJob] = useState<Order | null>(null);
   const [jobTitle, setJobTitle] = useState('');
   const [jobDueDate, setJobDueDate] = useState('');
-  const [jobPriority, setJobPriority] = useState<Job['priority']>('Medium');
+  const [jobPriority, setJob['priority']>('Medium');
   const [jobEmployeeId, setJobEmployeeId] = useState<string | undefined>(undefined);
   const [creatingJob, setCreatingJob] = useState(false);
 
@@ -231,7 +231,7 @@ const AdminOrderManagement = () => {
               <TableBody>
                 {filteredOrders.map((order) => (
                   <TableRow key={order._id}>
-                    <TableCell className="font-medium">{order._id}</TableCell>
+                    <TableCell className="font-medium">...{order._id.slice(-6)}</TableCell> {/* Truncated ID */}
                     <TableCell>
                       {order.clientName || order.clientEmail || 'N/A'}
                       {order.clientName && order.clientEmail && ` (${order.clientEmail})`}
@@ -403,6 +403,7 @@ const AdminOrderManagement = () => {
         >
           {selectedOrderForDetails && (
             <div className="space-y-4 text-gray-700">
+              <p><strong>Order ID:</strong> {selectedOrderForDetails._id}</p> {/* Full ID in modal */}
               <p><strong>Client:</strong> {selectedOrderForDetails.clientName || selectedOrderForDetails.clientEmail || 'N/A'}</p>
               <p><strong>Client Email:</strong> {selectedOrderForDetails.clientEmail || 'N/A'}</p>
               <p><strong>Service Type:</strong> {selectedOrderForDetails.serviceType}</p>

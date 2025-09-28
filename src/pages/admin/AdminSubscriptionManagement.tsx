@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye } from 'lucide-react'; // Added Eye icon
 import { useAuth } from '../../context/AuthContext';
 import { fetchAllSubscriptions, createSubscription, updateSubscription, deleteSubscription } from '../../api/admin/subscriptions'; // Import subscription API functions from new file
 import { fetchAllClients } from '../../api/admin/clients'; // Import client API functions from new file
@@ -28,6 +28,11 @@ const AdminSubscriptionManagement = () => {
   const [nextRenewalDate, setNextRenewalDate] = useState('');
   const [status, setStatus] = useState<Subscription['status']>('Active');
   const [loading, setLoading] = useState(false); // For modal actions
+
+  // State for "View Subscription Details" modal
+  const [isSubscriptionDetailsModalOpen, setIsSubscriptionDetailsModalOpen] = useState(false);
+  const [selectedSubscriptionForDetails, setSelectedSubscriptionForDetails] = useState<Subscription | null>(null);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -167,6 +172,16 @@ const AdminSubscriptionManagement = () => {
     return clients.find(client => client.id === id)?.name || 'N/A';
   };
 
+  const openSubscriptionDetailsModal = (subscription: Subscription) => {
+    setSelectedSubscriptionForDetails(subscription);
+    setIsSubscriptionDetailsModalOpen(true);
+  };
+
+  const closeSubscriptionDetailsModal = () => {
+    setIsSubscriptionDetailsModalOpen(false);
+    setSelectedSubscriptionForDetails(null);
+  };
+
   return (
     <Card className="w-full mx-auto">
       <CardHeader className="flex flex-row justify-between items-center">
@@ -189,6 +204,7 @@ const AdminSubscriptionManagement = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Subscription ID</TableHead> {/* Added Subscription ID */}
                   <TableHead>Client</TableHead>
                   <TableHead>Service Name</TableHead>
                   <TableHead>Start Date</TableHead>
@@ -200,6 +216,7 @@ const AdminSubscriptionManagement = () => {
               <TableBody>
                 {subscriptions.map((sub) => (
                   <TableRow key={sub._id}>
+                    <TableCell className="font-medium">...{sub._id.slice(-6)}</TableCell> {/* Truncated ID */}
                     <TableCell className="font-medium">{getClientName(sub.clientId)}</TableCell>
                     <TableCell>{sub.serviceName}</TableCell>
                     <TableCell>{new Date(sub.startDate).toLocaleDateString()}</TableCell>
@@ -214,6 +231,15 @@ const AdminSubscriptionManagement = () => {
                       </span>
                     </TableCell>
                     <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openSubscriptionDetailsModal(sub)}
+                        className="mr-2"
+                        title="View Subscription Details"
+                      >
+                        <Eye size={18} />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -321,6 +347,36 @@ const AdminSubscriptionManagement = () => {
               </Select>
             </div>
           </form>
+        </Modal>
+
+        {/* Subscription Details Modal */}
+        <Modal
+          isOpen={isSubscriptionDetailsModalOpen}
+          onClose={closeSubscriptionDetailsModal}
+          title={`Subscription Details: #${selectedSubscriptionForDetails?._id?.slice(-6)}`}
+          description={`Service: ${selectedSubscriptionForDetails?.serviceName}`}
+          footer={
+            <Button onClick={closeSubscriptionDetailsModal}>Close</Button>
+          }
+        >
+          {selectedSubscriptionForDetails && (
+            <div className="space-y-4 text-gray-700">
+              <p><strong>Subscription ID:</strong> {selectedSubscriptionForDetails._id}</p>
+              <p><strong>Client:</strong> {getClientName(selectedSubscriptionForDetails.clientId)}</p>
+              <p><strong>Service Name:</strong> {selectedSubscriptionForDetails.serviceName}</p>
+              <p><strong>Start Date:</strong> {new Date(selectedSubscriptionForDetails.startDate).toLocaleDateString()}</p>
+              <p><strong>Next Renewal Date:</strong> {new Date(selectedSubscriptionForDetails.nextRenewalDate).toLocaleDateString()}</p>
+              <p><strong>Status:</strong>
+                <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                  selectedSubscriptionForDetails.status === 'Active' ? 'bg-green-100 text-green-800' :
+                  selectedSubscriptionForDetails.status === 'Expired' ? 'bg-red-100 text-red-800' :
+                  'bg-yellow-100 text-yellow-800'
+                }`}>
+                  {selectedSubscriptionForDetails.status}
+                </span>
+              </p>
+            </div>
+          )}
         </Modal>
       </CardContent>
     </Card>
