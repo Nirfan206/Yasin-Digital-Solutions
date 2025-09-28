@@ -65,9 +65,15 @@ const Footer = () => {
             Stay updated with our latest news and services.
           </p>
           <div className="flex space-x-4 mt-4">
-            <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors"><Facebook size={24} /></a>
-            <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors"><Twitter size={24} /></a>
-            <a href="#" className="text-gray-400 hover:text-blue-400 transition-colors"><Linkedin size={24} /></a>
+            <Button asChild variant="ghost" size="icon" className="text-gray-400 hover:text-blue-400 transition-colors">
+              <a href="#" aria-label="Facebook"><Facebook size={24} /></a>
+            </Button>
+            <Button asChild variant="ghost" size="icon" className="text-gray-400 hover:text-blue-400 transition-colors">
+              <a href="#" aria-label="Twitter"><Twitter size={24} /></a>
+            </Button>
+            <Button asChild variant="ghost" size="icon" className="text-gray-400 hover:text-blue-400 transition-colors">
+              <a href="#" aria-label="LinkedIn"><Linkedin size={24} /></a>
+            </Button>
           </div>
         </div>
       </div>
