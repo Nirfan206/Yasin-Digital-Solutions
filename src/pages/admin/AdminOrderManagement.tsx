@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
 import { useAuth } from '../../context/AuthContext';
 import { fetchAllOrders, updateOrderStatus } from '../../api/admin'; // Import API functions
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'; // Import shadcn/ui Select
+import { Input } from '../../components/ui/input'; // Import Input for search
 import { Order } from '../../types/api'; // Import Order interface
 import { Loader2 } from 'lucide-react'; // Import Loader2 icon for loading state
 
@@ -15,6 +16,8 @@ const AdminOrderManagement = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [fetchingOrders, setFetchingOrders] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null); // To track which order is being updated
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<Order['status'] | 'all'>('all');
 
   useEffect(() => {
     const getOrders = async () => {
@@ -59,16 +62,59 @@ const AdminOrderManagement = () => {
     }
   };
 
+  const filteredOrders = useMemo(() => {
+    let currentOrders = orders;
+
+    if (filterStatus !== 'all') {
+      currentOrders = currentOrders.filter(order => order.status === filterStatus);
+    }
+
+    if (searchTerm) {
+      const lowerCaseSearchTerm = searchTerm.toLowerCase();
+      currentOrders = currentOrders.filter(order =>
+        (order.clientName && order.clientName.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (order.clientEmail && order.clientEmail.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        order.serviceType.toLowerCase().includes(lowerCaseSearchTerm) ||
+        order.requirements.toLowerCase().includes(lowerCaseSearchTerm) ||
+        order._id.toLowerCase().includes(lowerCaseSearchTerm)
+      );
+    }
+
+    return currentOrders;
+  }, [orders, searchTerm, filterStatus]);
+
   return (
     <Card className="w-full mx-auto">
       <CardHeader>
         <CardTitle className="text-2xl font-semibold text-gray-800">Order Management</CardTitle>
       </CardHeader>
       <CardContent>
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <Input
+            placeholder="Search by client, service, or ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="flex-grow"
+          />
+          <Select value={filterStatus} onValueChange={(value: Order['status'] | 'all') => setFilterStatus(value)}>
+            <SelectTrigger className="w-[180px] sm:w-[150px]">
+              <SelectValue placeholder="Filter by Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="Pending">Pending</SelectItem>
+              <SelectItem value="In Progress">In Progress</SelectItem>
+              <SelectItem value="Under Review">Under Review</SelectItem>
+              <SelectItem value="Completed">Completed</SelectItem>
+              <SelectItem value="Cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         {fetchingOrders ? (
           <p className="text-gray-600">Loading orders...</p>
-        ) : orders.length === 0 ? (
-          <p className="text-gray-600">No orders found.</p>
+        ) : filteredOrders.length === 0 ? (
+          <p className="text-gray-600">No orders found matching your criteria.</p>
         ) : (
           <div className="overflow-x-auto">
             <Table>
@@ -84,7 +130,7 @@ const AdminOrderManagement = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {orders.map((order) => (
+                {filteredOrders.map((order) => (
                   <TableRow key={order._id}>
                     <TableCell className="font-medium">{order._id}</TableCell>
                     <TableCell>
