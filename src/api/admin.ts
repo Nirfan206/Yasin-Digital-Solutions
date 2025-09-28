@@ -418,10 +418,16 @@ export const deleteSubscription = async (token: string, subscriptionId: string):
 
 
 // New functions for Admin Overview
-export const fetchAdminOverviewData = async (token: string): Promise<ApiResponse<{ totalClients: number; totalEmployees: number; totalOrders: number; totalJobs: number; totalSubscriptions: number }>> => {
+export const fetchAdminOverviewData = async (token: string): Promise<ApiResponse<{
+  totalClients: number;
+  totalEmployees: number;
+  totalOrders: number;
+  orderStatusCounts: { [key in Order['status']]: number };
+  totalJobs: number;
+  jobStatusCounts: { [key in Job['status']]: number };
+  totalSubscriptions: number;
+}>> => {
   try {
-    // In a real backend, this would be a single endpoint returning all counts.
-    // For now, we'll simulate by fetching all and getting the length.
     const [clientsResponse, employeesResponse, ordersResponse, jobsResponse, subscriptionsResponse] = await Promise.all([
       fetch(`${API_BASE_URL}/clients`, {
         method: 'GET',
@@ -435,33 +441,62 @@ export const fetchAdminOverviewData = async (token: string): Promise<ApiResponse
         method: 'GET',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       }),
-      fetch(`${API_BASE_URL}/jobs`, { // Fetch all jobs for overview
+      fetch(`${API_BASE_URL}/jobs`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       }),
-      fetch(`${API_BASE_URL}/subscriptions`, { // Fetch all subscriptions for overview
+      fetch(`${API_BASE_URL}/subscriptions`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       }),
     ]);
 
-    const clientsData = await clientsResponse.json();
-    const employeesData = await employeesResponse.json();
-    const ordersData = await ordersResponse.json();
-    const jobsData = await jobsResponse.json();
-    const subscriptionsData = await subscriptionsResponse.json();
+    const clientsData: Client[] = await clientsResponse.json();
+    const employeesData: Employee[] = await employeesResponse.json();
+    const ordersData: Order[] = await ordersResponse.json();
+    const jobsData: Job[] = await jobsResponse.json();
+    const subscriptionsData: Subscription[] = await subscriptionsResponse.json();
 
     if (!clientsResponse.ok || !employeesResponse.ok || !ordersResponse.ok || !jobsResponse.ok || !subscriptionsResponse.ok) {
-      throw new Error(clientsData.error || employeesData.error || ordersData.error || jobsData.error || subscriptionsData.error || 'Failed to fetch overview data');
+      throw new Error(
+        clientsData.error || employeesData.error || ordersData.error || jobsData.error || subscriptionsData.error || 'Failed to fetch overview data'
+      );
     }
+
+    const orderStatusCounts: { [key in Order['status']]: number } = {
+      'Pending': 0,
+      'In Progress': 0,
+      'Under Review': 0,
+      'Completed': 0,
+      'Cancelled': 0,
+    };
+    ordersData.forEach(order => {
+      if (orderStatusCounts[order.status] !== undefined) {
+        orderStatusCounts[order.status]++;
+      }
+    });
+
+    const jobStatusCounts: { [key in Job['status']]: number } = {
+      'Assigned': 0,
+      'In Progress': 0,
+      'Under Review': 0,
+      'Completed': 0,
+    };
+    jobsData.forEach(job => {
+      if (jobStatusCounts[job.status] !== undefined) {
+        jobStatusCounts[job.status]++;
+      }
+    });
 
     return {
       data: {
         totalClients: clientsData.length,
         totalEmployees: employeesData.length,
         totalOrders: ordersData.length,
+        orderStatusCounts,
         totalJobs: jobsData.length,
-        totalSubscriptions: subscriptionsData.length, // Include total subscriptions
+        jobStatusCounts,
+        totalSubscriptions: subscriptionsData.length,
       },
     };
   } catch (error: any) {
