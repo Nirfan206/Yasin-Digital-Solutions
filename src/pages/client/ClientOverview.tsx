@@ -1,14 +1,56 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { DollarSign, ListOrdered, CalendarCheck } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { fetchClientOrders, fetchClientSubscriptions } from '../../api/client';
+import { showError } from '../../utils/toast';
+import { Order, Subscription } from '../../types/api';
 
 const ClientOverview = () => {
-  // Placeholder data for demonstration
-  const totalOrders = 12;
-  const activeSubscriptions = 2;
-  const pendingOrders = 3;
+  const { token } = useAuth();
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [activeSubscriptions, setActiveSubscriptions] = useState(0);
+  const [pendingOrders, setPendingOrders] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const { data: ordersData, error: ordersError } = await fetchClientOrders(token);
+        if (ordersData) {
+          setTotalOrders(ordersData.length);
+          setPendingOrders(ordersData.filter(order => order.status === 'Pending' || order.status === 'In Progress' || order.status === 'Under Review').length);
+        } else if (ordersError) {
+          showError(ordersError);
+        }
+
+        const { data: subscriptionsData, error: subscriptionsError } = await fetchClientSubscriptions(token);
+        if (subscriptionsData) {
+          setActiveSubscriptions(subscriptionsData.filter(sub => sub.status === 'Active').length);
+        } else if (subscriptionsError) {
+          showError(subscriptionsError);
+        }
+      } catch (err) {
+        showError('Failed to fetch dashboard data.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [token]);
+
+  if (loading) {
+    return <div className="flex justify-center items-center min-h-[200px]">Loading client overview...</div>;
+  }
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
