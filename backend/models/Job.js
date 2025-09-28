@@ -31,6 +31,11 @@ const jobSchema = mongoose.Schema(
       ref: 'User', // Reference to the User model (employee)
       required: false, // Can be unassigned initially
     },
+    orderId: { // New field: Link to the original client order
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Order',
+      required: false,
+    },
     completionDate: {
       type: Date,
       required: false,

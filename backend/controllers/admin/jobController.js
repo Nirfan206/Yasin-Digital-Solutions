@@ -1,4 +1,5 @@
 const Job = require('../../models/Job');
+const Order = require('../../models/Order'); // Import Order model
 const User = require('../../models/User'); // To fetch employee's email
 const { createNotification } = require('../notificationController'); // Import notification helper
 const sendEmail = require('../../utils/sendEmail'); // Import sendEmail utility
@@ -20,7 +21,7 @@ const getAllJobs = async (req, res) => {
 // @route   POST /api/admin/jobs
 // @access  Private (Admin)
 const createJob = async (req, res) => {
-  const { title, client, dueDate, priority, status, employeeId } = req.body;
+  const { title, client, dueDate, priority, status, employeeId, orderId } = req.body; // Added orderId
 
   if (!title || !client || !dueDate || !priority || !status) {
     return res.status(400).json({ error: 'Please add all required job fields' });
@@ -34,7 +35,39 @@ const createJob = async (req, res) => {
       priority,
       status,
       employeeId: employeeId || undefined, // Can be unassigned
+      orderId: orderId || undefined, // Link to order if provided
     });
+
+    // If job is created from an order, update the order status and notify client
+    if (orderId) {
+      const order = await Order.findById(orderId);
+      if (order && order.status === 'Pending') { // Only update if order is still pending
+        order.status = 'In Progress'; // Or 'Assigned', depending on desired flow
+        await order.save();
+
+        const clientUser = await User.findById(order.clientId);
+        if (clientUser) {
+          const message = `Your order #${order._id.toString().slice(-6)} for "${order.serviceType}" is now "In Progress" as a job has been assigned.`;
+          const link = `/client/dashboard/orders`;
+          await createNotification(order.clientId, message, link, 'order_status_update');
+
+          const emailMessage = `
+            <h1>Order Status Update</h1>
+            <p>Dear ${clientUser.name || clientUser.email},</p>
+            <p>The status of your order for "${order.serviceType}" (Order ID: ${order._id.toString().slice(-6)}) has been updated to <strong>In Progress</strong>.</p>
+            <p>A job has been created and assigned based on your requirements.</p>
+            <p>You can view your order details in your dashboard.</p>
+            <p>Best regards,</p>
+            <p>The Yasin Digital Solutions Team</p>
+          `;
+          await sendEmail({
+            email: clientUser.email,
+            subject: `Order Status Update: Order #${order._id.toString().slice(-6)}`,
+            message: emailMessage,
+          });
+        }
+      }
+    }
 
     // Send notification and email to assigned employee if applicable
     if (job.employeeId) {
@@ -78,7 +111,7 @@ const createJob = async (req, res) => {
 // @access  Private (Admin)
 const updateJob = async (req, res) => {
   const { id } = req.params;
-  const { title, client, dueDate, priority, status, employeeId } = req.body;
+  const { title, client, dueDate, priority, status, employeeId } = req.body; // orderId is not updated here
 
   try {
     const job = await Job.findById(id);

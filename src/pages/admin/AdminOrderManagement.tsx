@@ -3,38 +3,63 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
 import { useAuth } from '../../context/AuthContext';
-import { fetchAllOrders, updateOrderStatus } from '../../api/admin/orders'; // Import API functions from new file
+import { fetchAllOrders, updateOrderStatus } from '../../api/admin/orders';
+import { createJob } from '../../api/admin/jobs'; // Import createJob
+import { fetchAllEmployees } from '../../api/admin/employees'; // Import fetchAllEmployees
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Input } from '../../components/ui/input';
-import { Order } from '../../types/api';
-import { Loader2 } from 'lucide-react';
+import { Button } from '../../components/ui/button'; // Import Button
+import { Label } from '../../components/ui/label'; // Import Label
+import Modal from '../../components/Modal'; // Import Modal
+import { Order, Job, Employee } from '../../types/api';
+import { Loader2, Briefcase } from 'lucide-react'; // Import Briefcase icon
 
 const AdminOrderManagement = () => {
   const { token } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]); // State for employees
   const [fetchingOrders, setFetchingOrders] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<Order['status'] | 'all'>('all');
 
+  // State for "Create Job" modal
+  const [isCreateJobModalOpen, setIsCreateJobModalOpen] = useState(false);
+  const [selectedOrderForJob, setSelectedOrderForJob] = useState<Order | null>(null);
+  const [jobTitle, setJobTitle] = useState('');
+  const [jobDueDate, setJobDueDate] = useState('');
+  const [jobPriority, setJobPriority] = useState<Job['priority']>('Medium');
+  const [jobEmployeeId, setJobEmployeeId] = useState<string | undefined>(undefined);
+  const [creatingJob, setCreatingJob] = useState(false);
+
   useEffect(() => {
-    const getOrders = async () => {
+    const fetchData = async () => {
       if (!token) {
         setFetchingOrders(false);
         return;
       }
       setFetchingOrders(true);
-      const { data, error } = await fetchAllOrders(token);
-      if (data) {
-        setOrders(data);
-      } else if (error) {
-        showError(error);
+      const [ordersResponse, employeesResponse] = await Promise.all([
+        fetchAllOrders(token),
+        fetchAllEmployees(token),
+      ]);
+
+      if (ordersResponse.data) {
+        setOrders(ordersResponse.data);
+      } else if (ordersResponse.error) {
+        showError(ordersResponse.error);
+      }
+
+      if (employeesResponse.data) {
+        setEmployees(employeesResponse.data);
+      } else if (employeesResponse.error) {
+        showError(employeesResponse.error);
       }
       setFetchingOrders(false);
     };
-    getOrders();
+    fetchData();
   }, [token]);
 
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
@@ -59,6 +84,65 @@ const AdminOrderManagement = () => {
       showError('Failed to update order status.');
     } finally {
       setUpdatingStatus(null);
+    }
+  };
+
+  const openCreateJobModal = (order: Order) => {
+    setSelectedOrderForJob(order);
+    setJobTitle(order.serviceType); // Pre-fill title with service type
+    setJobDueDate(''); // Clear due date
+    setJobPriority('Medium');
+    setJobEmployeeId(undefined);
+    setIsCreateJobModalOpen(true);
+  };
+
+  const closeCreateJobModal = () => {
+    setIsCreateJobModalOpen(false);
+    setSelectedOrderForJob(null);
+    setCreatingJob(false);
+  };
+
+  const handleCreateJobSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token || !selectedOrderForJob) {
+      showError('Authentication token or selected order missing.');
+      return;
+    }
+    if (!jobTitle || !jobDueDate || !jobPriority) {
+      showError('Please fill in all required job fields.');
+      return;
+    }
+
+    setCreatingJob(true);
+    try {
+      const { data: newJob, error } = await createJob(
+        token,
+        jobTitle,
+        selectedOrderForJob.clientName || selectedOrderForJob.clientEmail || 'N/A',
+        jobDueDate,
+        jobPriority,
+        'Assigned', // Default status for new job
+        jobEmployeeId,
+        selectedOrderForJob._id // Link to the order
+      );
+
+      if (newJob) {
+        showSuccess('Job created successfully and linked to order!');
+        // Refresh orders to reflect status change
+        const { data: updatedOrders, error: ordersError } = await fetchAllOrders(token);
+        if (updatedOrders) {
+          setOrders(updatedOrders);
+        } else if (ordersError) {
+          showError(ordersError);
+        }
+        closeCreateJobModal();
+      } else if (error) {
+        showError(error);
+      }
+    } catch (error) {
+      showError('Failed to create job.');
+    } finally {
+      setCreatingJob(false);
     }
   };
 
@@ -151,7 +235,7 @@ const AdminOrderManagement = () => {
                       </span>
                     </TableCell>
                     <TableCell>{new Date(order.orderDate).toLocaleDateString()}</TableCell>
-                    <TableCell>
+                    <TableCell className="flex items-center space-x-2">
                       <Select
                         value={order.status}
                         onValueChange={(value: Order['status']) => handleStatusChange(order._id, value)}
@@ -175,6 +259,17 @@ const AdminOrderManagement = () => {
                           <SelectItem value="Cancelled">Cancelled</SelectItem>
                         </SelectContent>
                       </Select>
+                      {order.status === 'Pending' && (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => openCreateJobModal(order)}
+                          title="Create Job from Order"
+                          disabled={creatingJob}
+                        >
+                          <Briefcase size={18} />
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -182,6 +277,96 @@ const AdminOrderManagement = () => {
             </Table>
           </div>
         )}
+
+        {/* Create Job Modal */}
+        <Modal
+          isOpen={isCreateJobModalOpen}
+          onClose={closeCreateJobModal}
+          title={`Create Job for Order #${selectedOrderForJob?._id?.slice(-6)}`}
+          description={`Service: ${selectedOrderForJob?.serviceType}`}
+          footer={
+            <div className="flex justify-end space-x-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={closeCreateJobModal}
+                disabled={creatingJob}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                form="create-job-form"
+                disabled={creatingJob}
+              >
+                {creatingJob ? 'Creating Job...' : 'Create Job'}
+              </Button>
+            </div>
+          }
+        >
+          <form id="create-job-form" onSubmit={handleCreateJobSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="jobTitle">Job Title</Label>
+              <Input
+                type="text"
+                id="jobTitle"
+                value={jobTitle}
+                onChange={(e) => setJobTitle(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="jobClient">Client</Label>
+              <Input
+                type="text"
+                id="jobClient"
+                value={selectedOrderForJob?.clientName || selectedOrderForJob?.clientEmail || ''}
+                disabled
+              />
+            </div>
+            <div>
+              <Label htmlFor="jobDueDate">Due Date</Label>
+              <Input
+                type="date"
+                id="jobDueDate"
+                value={jobDueDate}
+                onChange={(e) => setJobDueDate(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="jobPriority">Priority</Label>
+              <Select value={jobPriority} onValueChange={(value: Job['priority']) => setJobPriority(value)} disabled={creatingJob}>
+                <SelectTrigger id="jobPriority">
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="High">High</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="Low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="jobEmployee">Assign Employee</Label>
+              <Select
+                value={jobEmployeeId || ''}
+                onValueChange={(value: string) => setJobEmployeeId(value === 'unassigned' ? undefined : value)}
+                disabled={creatingJob}
+              >
+                <SelectTrigger id="jobEmployee">
+                  <SelectValue placeholder="Select employee" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                  {employees.map(emp => (
+                    <SelectItem key={emp.id} value={emp.id}>{emp.name} ({emp.email})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </form>
+        </Modal>
       </CardContent>
     </Card>
   );

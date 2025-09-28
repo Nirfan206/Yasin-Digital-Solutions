@@ -30,7 +30,8 @@ export const createJob = async (
   dueDate: string,
   priority: Job['priority'],
   status: Job['status'],
-  employeeId?: string
+  employeeId?: string,
+  orderId?: string // New parameter
 ): Promise<ApiResponse<Job>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/jobs`, {
@@ -39,7 +40,7 @@ export const createJob = async (
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({ title, client, dueDate, priority, status, employeeId }),
+      body: JSON.stringify({ title, client, dueDate, priority, status, employeeId, orderId }), // Include orderId
     });
     const data = await response.json();
     if (!response.ok) {

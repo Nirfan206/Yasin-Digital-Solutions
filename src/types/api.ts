@@ -43,6 +43,7 @@ export interface Job {
   status: 'Assigned' | 'In Progress' | 'Under Review' | 'Completed';
   priority: 'High' | 'Medium' | 'Low';
   employeeId?: string; // Optional, for employee-specific jobs
+  orderId?: string; // New field: Link to the original client order
   completionDate?: string; // Optional, for completed jobs
   feedback?: string; // Optional feedback field
 }
