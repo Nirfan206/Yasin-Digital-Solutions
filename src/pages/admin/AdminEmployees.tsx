@@ -2,31 +2,25 @@
 
 import React, { useState, useEffect } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
-import { Plus, Edit, Trash2, Eye } from 'lucide-react'; // Added Eye icon
+import { Plus } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { fetchAllEmployees, createEmployee, updateEmployee, deleteEmployee } from '../../api/admin/employees'; // Import API functions from new file
+import { fetchAllEmployees, createEmployee, updateEmployee, deleteEmployee } from '../../api/admin/employees';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Button } from '../../components/ui/button';
-import { Label } from '../../components/ui/label';
-import { Input } from '../../components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import Modal from '../../components/Modal';
+import EmployeeTable from '../../components/admin/employees/EmployeeTable';
+import EmployeeFormModal from '../../components/admin/employees/EmployeeFormModal';
+import EmployeeDetailsModal from '../../components/admin/employees/EmployeeDetailsModal';
 import { Employee } from '../../types/api';
 
 const AdminEmployees = () => {
   const { token } = useAuth();
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [fetchingEmployees, setFetchingEmployees] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [role, setRole] = useState('employee');
-  const [status, setStatus] = useState<'Active' | 'Inactive'>('Active');
-  const [loading, setLoading] = useState(false); // For modal actions
+  const [loadingAction, setLoadingAction] = useState(false); // For modal actions (save/delete)
 
-  // State for "View Employee Details" modal
+  // Modals state
+  const [isEmployeeFormModalOpen, setIsEmployeeFormModalOpen] = useState(false);
+  const [currentEmployeeForForm, setCurrentEmployeeForForm] = useState<Employee | null>(null);
   const [isEmployeeDetailsModalOpen, setIsEmployeeDetailsModalOpen] = useState(false);
   const [selectedEmployeeForDetails, setSelectedEmployeeForDetails] = useState<Employee | null>(null);
 
@@ -48,43 +42,30 @@ const AdminEmployees = () => {
     getEmployees();
   }, [token]);
 
-  const openModal = (employee?: Employee) => {
-    if (employee) {
-      setCurrentEmployee(employee);
-      setName(employee.name);
-      setEmail(employee.email);
-      setRole(employee.role);
-      setStatus(employee.status);
-    } else {
-      setCurrentEmployee(null);
-      setName('');
-      setEmail('');
-      setRole('employee');
-      setStatus('Active');
-    }
-    setIsModalOpen(true);
+  const handleOpenEmployeeFormModal = (employee?: Employee) => {
+    setCurrentEmployeeForForm(employee || null);
+    setIsEmployeeFormModalOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setLoading(false);
+  const handleCloseEmployeeFormModal = () => {
+    setIsEmployeeFormModalOpen(false);
+    setCurrentEmployeeForForm(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleEmployeeFormSubmit = async (employeeData: Omit<Employee, 'id' | 'hiredDate'>) => {
     if (!token) {
       showError('You must be logged in to manage employees.');
       return;
     }
-    setLoading(true);
+    setLoadingAction(true);
     try {
-      if (currentEmployee) {
+      if (currentEmployeeForForm) {
         // Update employee
-        const { data, error } = await updateEmployee(token, currentEmployee.id, name, email, role, status);
+        const { data, error } = await updateEmployee(token, currentEmployeeForForm.id, employeeData.name, employeeData.email, employeeData.role, employeeData.status);
         if (data) {
           setEmployees(prevEmployees =>
             prevEmployees.map(employee =>
-              employee.id === currentEmployee.id ? { ...employee, name: data.name, email: data.email, role: data.role, status: data.status } : employee
+              employee.id === currentEmployeeForForm.id ? { ...employee, name: data.name, email: data.email, role: data.role, status: data.status } : employee
             )
           );
           showSuccess('Employee updated successfully!');
@@ -93,7 +74,7 @@ const AdminEmployees = () => {
         }
       } else {
         // Create new employee
-        const { data, error } = await createEmployee(token, name, email, role, status);
+        const { data, error } = await createEmployee(token, employeeData.name, employeeData.email, employeeData.role, employeeData.status);
         if (data) {
           setEmployees(prevEmployees => [...prevEmployees, data]);
           showSuccess('Employee created successfully!');
@@ -101,22 +82,22 @@ const AdminEmployees = () => {
           showError(error);
         }
       }
-      closeModal();
+      handleCloseEmployeeFormModal();
     } catch (error) {
       showError('Failed to save employee.');
     } finally {
-      setLoading(false);
+      setLoadingAction(false);
     }
   };
 
-  const handleDelete = async (employeeId: string) => {
+  const handleDeleteEmployee = async (employeeId: string) => {
     if (!window.confirm('Are you sure you want to delete this employee?')) return;
     if (!token) {
       showError('You must be logged in to delete employees.');
       return;
     }
 
-    setLoading(true);
+    setLoadingAction(true);
     try {
       const { message, error } = await deleteEmployee(token, employeeId);
       if (message) {
@@ -128,16 +109,16 @@ const AdminEmployees = () => {
     } catch (error) {
       showError('Failed to delete employee.');
     } finally {
-      setLoading(false);
+      setLoadingAction(false);
     }
   };
 
-  const openEmployeeDetailsModal = (employee: Employee) => {
+  const handleOpenEmployeeDetailsModal = (employee: Employee) => {
     setSelectedEmployeeForDetails(employee);
     setIsEmployeeDetailsModalOpen(true);
   };
 
-  const closeEmployeeDetailsModal = () => {
+  const handleCloseEmployeeDetailsModal = () => {
     setIsEmployeeDetailsModalOpen(false);
     setSelectedEmployeeForDetails(null);
   };
@@ -147,7 +128,7 @@ const AdminEmployees = () => {
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle className="text-2xl font-semibold text-gray-800">Employee Management</CardTitle>
         <Button
-          onClick={() => openModal()}
+          onClick={() => handleOpenEmployeeFormModal()}
           className="flex items-center space-x-2"
         >
           <Plus size={18} />
@@ -160,167 +141,28 @@ const AdminEmployees = () => {
         ) : employees.length === 0 ? (
           <p className="text-gray-600">No employees found.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Hired Date</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {employees.map((employee) => (
-                  <TableRow key={employee.id}>
-                    <TableCell className="font-medium">{employee.name}</TableCell>
-                    <TableCell>{employee.email}</TableCell>
-                    <TableCell>{employee.role}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        employee.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
-                        {employee.status}
-                      </span>
-                    </TableCell>
-                    <TableCell>{new Date(employee.hiredDate).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openEmployeeDetailsModal(employee)}
-                        className="mr-2"
-                        title="View Employee Details"
-                      >
-                        <Eye size={18} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openModal(employee)}
-                        className="mr-2"
-                        disabled={loading}
-                      >
-                        <Edit size={18} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(employee.id)}
-                        disabled={loading}
-                      >
-                        <Trash2 size={18} />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <EmployeeTable
+            employees={employees}
+            onOpenEditModal={handleOpenEmployeeFormModal}
+            onDeleteEmployee={handleDeleteEmployee}
+            onOpenEmployeeDetailsModal={handleOpenEmployeeDetailsModal}
+            loadingAction={loadingAction}
+          />
         )}
 
-        <Modal
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          title={currentEmployee ? 'Edit Employee' : 'Add New Employee'}
-          footer={
-            <div className="flex justify-end space-x-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={closeModal}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                form="employee-form" // Link button to the form
-                disabled={loading}
-              >
-                {loading ? 'Saving...' : 'Save Employee'}
-              </Button>
-            </div>
-          }
-        >
-          <form id="employee-form" onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="employeeName">Name</Label>
-              <Input
-                type="text"
-                id="employeeName"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="employeeEmail">Email</Label>
-              <Input
-                type="email"
-                id="employeeEmail"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="employeeRole">Role</Label>
-              <Select value={role} onValueChange={setRole} disabled={loading}>
-                <SelectTrigger id="employeeRole">
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="employee">Employee</SelectItem>
-                  <SelectItem value="manager">Manager</SelectItem>
-                  {/* Add other roles as needed */}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="employeeStatus">Status</Label>
-              <Select value={status} onValueChange={(value: 'Active' | 'Inactive') => setStatus(value)} disabled={loading}>
-                <SelectTrigger id="employeeStatus">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </form>
-        </Modal>
+        <EmployeeFormModal
+          isOpen={isEmployeeFormModalOpen}
+          onClose={handleCloseEmployeeFormModal}
+          currentEmployee={currentEmployeeForForm}
+          onSubmit={handleEmployeeFormSubmit}
+          loading={loadingAction}
+        />
 
-        {/* Employee Details Modal */}
-        <Modal
+        <EmployeeDetailsModal
           isOpen={isEmployeeDetailsModalOpen}
-          onClose={closeEmployeeDetailsModal}
-          title={`Employee Details: ${selectedEmployeeForDetails?.name || 'N/A'}`}
-          description={selectedEmployeeForDetails?.email}
-          footer={
-            <Button onClick={closeEmployeeDetailsModal}>Close</Button>
-          }
-        >
-          {selectedEmployeeForDetails && (
-            <div className="space-y-4 text-gray-700">
-              <p><strong>Employee ID:</strong> {selectedEmployeeForDetails.id}</p>
-              <p><strong>Name:</strong> {selectedEmployeeForDetails.name}</p>
-              <p><strong>Email:</strong> {selectedEmployeeForDetails.email}</p>
-              <p><strong>Role:</strong> {selectedEmployeeForDetails.role}</p>
-              <p><strong>Status:</strong>
-                <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                  selectedEmployeeForDetails.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                }`}>
-                  {selectedEmployeeForDetails.status}
-                </span>
-              </p>
-              <p><strong>Hired Date:</strong> {new Date(selectedEmployeeForDetails.hiredDate).toLocaleDateString()}</p>
-            </div>
-          )}
-        </Modal>
+          onClose={handleCloseEmployeeDetailsModal}
+          employee={selectedEmployeeForDetails}
+        />
       </CardContent>
     </Card>
   );
