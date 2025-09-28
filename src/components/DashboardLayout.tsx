@@ -3,13 +3,13 @@
 import React, { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, Briefcase, Settings, LayoutDashboard, ListOrdered, CalendarCheck, Users, Building2, LucideIcon } from 'lucide-react'; // Import LucideIcon
+import { LogOut, LucideIcon } from 'lucide-react'; // Only import LogOut and LucideIcon type
 import { Button } from './ui/button'; // Import shadcn/ui Button
 
 interface DashboardLayoutProps {
   children: ReactNode;
   title: string;
-  sidebarNav: { path: string; label: string; icon: LucideIcon }[]; // Changed icon type to LucideIcon
+  sidebarNav: { path: string; label: string; icon: LucideIcon }[];
 }
 
 const DashboardLayout = ({ children, title, sidebarNav }: DashboardLayoutProps) => {
@@ -27,7 +27,7 @@ const DashboardLayout = ({ children, title, sidebarNav }: DashboardLayoutProps) 
             {sidebarNav.map((item) => (
               <li key={item.path}>
                 <Button
-                  asChild // Renders the Link component inside the Button
+                  asChild
                   variant="ghost"
                   className="w-full justify-start flex items-center space-x-3 p-3 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200"
                 >
