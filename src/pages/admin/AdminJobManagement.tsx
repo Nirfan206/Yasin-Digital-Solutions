@@ -9,12 +9,11 @@ import { fetchAllEmployees } from '../../api/admin/employees';
 import { fetchAllOrders } from '../../api/admin/orders';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import JobTable from '../../components/admin/jobs/JobTable';
 import JobFormModal from '../../components/admin/jobs/JobFormModal';
 import JobDetailsModal from '../../components/admin/jobs/JobDetailsModal';
-import OrderDetailsModal from '../../components/admin/orders/OrderDetailsModal'; // Reusable OrderDetailsModal
+import OrderDetailsModal from '../../components/admin/orders/OrderDetailsModal';
+import JobFilters from '../../components/admin/jobs/JobFilters'; // New import
 import { Job, Employee, Order } from '../../types/api';
 
 const AdminJobManagement = () => {
@@ -23,7 +22,7 @@ const AdminJobManagement = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [fetchingJobs, setFetchingJobs] = useState(true);
-  const [loadingAction, setLoadingAction] = useState(false); // For delete/save actions
+  const [loadingAction, setLoadingAction] = useState(false);
 
   // Modals state
   const [isJobFormModalOpen, setIsJobFormModalOpen] = useState(false);
@@ -36,9 +35,8 @@ const AdminJobManagement = () => {
   // Filter and Search state
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<Job['status'] | 'all'>('all');
-  const [filterPriority, setFilterPriority] = useState<Job['priority'] | 'all'>('all');
+  const [filterPriority, setFilterPriority] = useState<Job['priority'] | 'all']>('all');
   const [filterEmployeeId, setFilterEmployeeId] = useState<string | 'all'>('all');
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -124,7 +122,7 @@ const AdminJobManagement = () => {
           jobData.priority,
           jobData.status,
           jobData.employeeId,
-          jobData.orderId // Pass orderId if it exists
+          jobData.orderId
         );
         if (data) {
           setJobs(prevJobs => [...prevJobs, data]);
@@ -215,49 +213,17 @@ const AdminJobManagement = () => {
         </Button>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <Input
-            placeholder="Search by title, client, or ID..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-grow"
-          />
-          <Select value={filterStatus} onValueChange={(value: Job['status'] | 'all') => setFilterStatus(value)}>
-            <SelectTrigger className="w-[180px] sm:w-[150px]">
-              <SelectValue placeholder="Filter by Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="Assigned">Assigned</SelectItem>
-              <SelectItem value="In Progress">In Progress</SelectItem>
-              <SelectItem value="Under Review">Under Review</SelectItem>
-              <SelectItem value="Completed">Completed</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={filterPriority} onValueChange={(value: Job['priority'] | 'all') => setFilterPriority(value)}>
-            <SelectTrigger className="w-[180px] sm:w-[150px]">
-              <SelectValue placeholder="Filter by Priority" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Priorities</SelectItem>
-              <SelectItem value="High">High</SelectItem>
-              <SelectItem value="Medium">Medium</SelectItem>
-              <SelectItem value="Low">Low</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={filterEmployeeId} onValueChange={(value: string | 'all') => setFilterEmployeeId(value)}>
-            <SelectTrigger className="w-[180px] sm:w-[150px]">
-              <SelectValue placeholder="Filter by Employee" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Employees</SelectItem>
-              <SelectItem value="unassigned">Unassigned</SelectItem>
-              {employees.map(emp => (
-                <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <JobFilters
+          searchTerm={searchTerm}
+          onSearchTermChange={setSearchTerm}
+          filterStatus={filterStatus}
+          onFilterStatusChange={setFilterStatus}
+          filterPriority={filterPriority}
+          onFilterPriorityChange={setFilterPriority}
+          filterEmployeeId={filterEmployeeId}
+          onFilterEmployeeIdChange={setFilterEmployeeId}
+          employees={employees}
+        />
 
         {fetchingJobs ? (
           <p className="text-gray-600">Loading jobs...</p>
