@@ -4,22 +4,19 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
 import { useAuth } from '../../context/AuthContext';
 import { fetchAllOrders, updateOrderStatus } from '../../api/admin/orders';
-import { createJob } from '../../api/admin/jobs'; // Import createJob
-import { fetchAllEmployees } from '../../api/admin/employees'; // Import fetchAllEmployees
+import { createJob } from '../../api/admin/jobs';
+import { fetchAllEmployees } from '../../api/admin/employees';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { Input } from '../../components/ui/input';
-import { Button } from '../../components/ui/button';
+import OrderFilters from '../../components/admin/orders/OrderFilters'; // New import
+import OrderTable from '../../components/admin/orders/OrderTable'; // New import
 import { Order, Job, Employee } from '../../types/api';
-import { Loader2, Briefcase, Eye } from 'lucide-react'; // Import Eye icon
-import OrderDetailsModal from '../../components/admin/orders/OrderDetailsModal'; // Import reusable OrderDetailsModal
-import CreateJobFromOrderModal from '../../components/admin/orders/CreateJobFromOrderModal'; // Import new CreateJobFromOrderModal
+import OrderDetailsModal from '../../components/admin/orders/OrderDetailsModal';
+import CreateJobFromOrderModal from '../../components/admin/orders/CreateJobFromOrderModal';
 
 const AdminOrderManagement = () => {
   const { token } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [employees, setEmployees] = useState<Employee[]>([]); // State for employees
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [fetchingOrders, setFetchingOrders] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -183,117 +180,26 @@ const AdminOrderManagement = () => {
         <CardTitle className="text-2xl font-semibold text-gray-800">Order Management</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <Input
-            placeholder="Search by client, service, or ID..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-grow"
-          />
-          <Select value={filterStatus} onValueChange={(value: Order['status'] | 'all') => setFilterStatus(value)}>
-            <SelectTrigger className="w-[180px] sm:w-[150px]">
-              <SelectValue placeholder="Filter by Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="Pending">Pending</SelectItem>
-              <SelectItem value="In Progress">In Progress</SelectItem>
-              <SelectItem value="Under Review">Under Review</SelectItem>
-              <SelectItem value="Completed">Completed</SelectItem>
-              <SelectItem value="Cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <OrderFilters
+          searchTerm={searchTerm}
+          onSearchTermChange={setSearchTerm}
+          filterStatus={filterStatus}
+          onFilterStatusChange={setFilterStatus}
+        />
 
         {fetchingOrders ? (
           <p className="text-gray-600">Loading orders...</p>
         ) : filteredOrders.length === 0 ? (
           <p className="text-gray-600">No orders found matching your criteria.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order ID</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Service Type</TableHead>
-                  <TableHead>Requirements</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Order Date</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredOrders.map((order) => (
-                  <TableRow key={order._id}>
-                    <TableCell className="font-medium">...{order._id.slice(-6)}</TableCell> {/* Truncated ID */}
-                    <TableCell>
-                      {order.clientName || order.clientEmail || 'N/A'}
-                      {order.clientName && order.clientEmail && ` (${order.clientEmail})`}
-                    </TableCell>
-                    <TableCell>{order.serviceType}</TableCell>
-                    <TableCell className="max-w-xs truncate">{order.requirements}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        order.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                        order.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                        order.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                        order.status === 'Under Review' ? 'bg-purple-100 text-purple-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {order.status}
-                      </span>
-                    </TableCell>
-                    <TableCell>{new Date(order.orderDate).toLocaleDateString()}</TableCell>
-                    <TableCell className="flex items-center space-x-2">
-                      <Select
-                        value={order.status}
-                        onValueChange={(value: Order['status']) => handleStatusChange(order._id, value)}
-                        disabled={updatingStatus === order._id}
-                      >
-                        <SelectTrigger className="w-[180px]">
-                          {updatingStatus === order._id ? (
-                            <div className="flex items-center space-x-2">
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              <span>Updating...</span>
-                            </div>
-                          ) : (
-                            <SelectValue placeholder="Update Status" />
-                          )}
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Pending">Pending</SelectItem>
-                          <SelectItem value="In Progress">In Progress</SelectItem>
-                          <SelectItem value="Under Review">Under Review</SelectItem>
-                          <SelectItem value="Completed">Completed</SelectItem>
-                          <SelectItem value="Cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {order.status === 'Pending' && (
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => openCreateJobModal(order)}
-                          title="Create Job from Order"
-                          disabled={creatingJob}
-                        >
-                          <Briefcase size={18} />
-                        </Button>
-                      )}
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => openOrderDetailsModal(order)}
-                        title="View Order Details"
-                      >
-                        <Eye size={18} />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <OrderTable
+            orders={filteredOrders}
+            updatingStatus={updatingStatus}
+            onStatusChange={handleStatusChange}
+            onOpenCreateJobModal={openCreateJobModal}
+            onOpenOrderDetailsModal={openOrderDetailsModal}
+            creatingJob={creatingJob}
+          />
         )}
 
         {/* Create Job Modal */}
