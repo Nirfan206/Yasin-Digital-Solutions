@@ -60,7 +60,7 @@ const EmployeeCompletedJobs = () => {
                     <TableCell className="font-medium">{job._id}</TableCell>
                     <TableCell>{job.title}</TableCell>
                     <TableCell>{job.client}</TableCell>
-                    <TableCell>{job.completionDate || 'N/A'}</TableCell> {/* Display actual completionDate or 'N/A' */}
+                    <TableCell>{job.completionDate ? new Date(job.completionDate).toLocaleDateString() : 'N/A'}</TableCell> {/* Display actual completionDate or 'N/A' */}
                     <TableCell className="max-w-xs truncate">{job.feedback || 'N/A'}</TableCell> {/* Display actual feedback or 'N/A' */}
                   </TableRow>
                 ))}
