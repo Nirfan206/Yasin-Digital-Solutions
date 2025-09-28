@@ -2,33 +2,27 @@
 
 import React, { useState, useEffect } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
-import { Plus, Edit, Trash2, Eye } from 'lucide-react'; // Added Eye icon
+import { Plus } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { fetchAllClients, createClient, updateClient, deleteClient } from '../../api/admin/clients'; // Import API functions from new file
+import { fetchAllClients, createClient, updateClient, deleteClient } from '../../api/admin/clients';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Button } from '../../components/ui/button';
-import { Label } from '../../components/ui/label';
-import { Input } from '../../components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import Modal from '../../components/Modal';
+import ClientTable from '../../components/admin/clients/ClientTable';
+import ClientFormModal from '../../components/admin/clients/ClientFormModal';
+import ClientDetailsModal from '../../components/admin/clients/ClientDetailsModal';
 import { Client } from '../../types/api';
 
 const AdminClients = () => {
   const { token } = useAuth();
   const [clients, setClients] = useState<Client[]>([]);
   const [fetchingClients, setFetchingClients] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentClient, setCurrentClient] = useState<Client | null>(null);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<'Active' | 'Inactive'>('Active');
-  const [loading, setLoading] = useState(false); // For modal actions
+  const [loadingAction, setLoadingAction] = useState(false); // For modal actions (save/delete)
 
-  // State for "View Client Details" modal
+  // Modals state
+  const [isClientFormModalOpen, setIsClientFormModalOpen] = useState(false);
+  const [currentClientForForm, setCurrentClientForForm] = useState<Client | null>(null);
   const [isClientDetailsModalOpen, setIsClientDetailsModalOpen] = useState(false);
   const [selectedClientForDetails, setSelectedClientForDetails] = useState<Client | null>(null);
-
 
   useEffect(() => {
     const getClients = async () => {
@@ -48,41 +42,30 @@ const AdminClients = () => {
     getClients();
   }, [token]);
 
-  const openModal = (client?: Client) => {
-    if (client) {
-      setCurrentClient(client);
-      setName(client.name);
-      setEmail(client.email);
-      setStatus(client.status);
-    } else {
-      setCurrentClient(null);
-      setName('');
-      setEmail('');
-      setStatus('Active');
-    }
-    setIsModalOpen(true);
+  const handleOpenClientFormModal = (client?: Client) => {
+    setCurrentClientForForm(client || null);
+    setIsClientFormModalOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setLoading(false);
+  const handleCloseClientFormModal = () => {
+    setIsClientFormModalOpen(false);
+    setCurrentClientForForm(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleClientFormSubmit = async (clientData: Omit<Client, 'id' | 'registeredDate'>) => {
     if (!token) {
       showError('You must be logged in to manage clients.');
       return;
     }
-    setLoading(true);
+    setLoadingAction(true);
     try {
-      if (currentClient) {
+      if (currentClientForForm) {
         // Update client
-        const { data, error } = await updateClient(token, currentClient.id, name, email, status);
+        const { data, error } = await updateClient(token, currentClientForForm.id, clientData.name, clientData.email, clientData.status);
         if (data) {
           setClients(prevClients =>
             prevClients.map(client =>
-              client.id === currentClient.id ? { ...client, name: data.name, email: data.email, status: data.status } : client
+              client.id === currentClientForForm.id ? { ...client, name: data.name, email: data.email, status: data.status } : client
             )
           );
           showSuccess('Client updated successfully!');
@@ -91,7 +74,7 @@ const AdminClients = () => {
         }
       } else {
         // Create new client
-        const { data, error } = await createClient(token, name, email, status);
+        const { data, error } = await createClient(token, clientData.name, clientData.email, clientData.status);
         if (data) {
           setClients(prevClients => [...prevClients, data]);
           showSuccess('Client created successfully!');
@@ -99,22 +82,22 @@ const AdminClients = () => {
           showError(error);
         }
       }
-      closeModal();
+      handleCloseClientFormModal();
     } catch (error) {
       showError('Failed to save client.');
     } finally {
-      setLoading(false);
+      setLoadingAction(false);
     }
   };
 
-  const handleDelete = async (clientId: string) => {
+  const handleDeleteClient = async (clientId: string) => {
     if (!window.confirm('Are you sure you want to delete this client?')) return;
     if (!token) {
       showError('You must be logged in to delete clients.');
       return;
     }
 
-    setLoading(true);
+    setLoadingAction(true);
     try {
       const { message, error } = await deleteClient(token, clientId);
       if (message) {
@@ -126,16 +109,16 @@ const AdminClients = () => {
     } catch (error) {
       showError('Failed to delete client.');
     } finally {
-      setLoading(false);
+      setLoadingAction(false);
     }
   };
 
-  const openClientDetailsModal = (client: Client) => {
+  const handleOpenClientDetailsModal = (client: Client) => {
     setSelectedClientForDetails(client);
     setIsClientDetailsModalOpen(true);
   };
 
-  const closeClientDetailsModal = () => {
+  const handleCloseClientDetailsModal = () => {
     setIsClientDetailsModalOpen(false);
     setSelectedClientForDetails(null);
   };
@@ -145,7 +128,7 @@ const AdminClients = () => {
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle className="text-2xl font-semibold text-gray-800">Client Management</CardTitle>
         <Button
-          onClick={() => openModal()}
+          onClick={() => handleOpenClientFormModal()}
           className="flex items-center space-x-2"
         >
           <Plus size={18} />
@@ -158,151 +141,28 @@ const AdminClients = () => {
         ) : clients.length === 0 ? (
           <p className="text-gray-600">No clients found.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Registered Date</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {clients.map((client) => (
-                  <TableRow key={client.id}>
-                    <TableCell className="font-medium">{client.name}</TableCell>
-                    <TableCell>{client.email}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        client.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
-                        {client.status}
-                      </span>
-                    </TableCell>
-                    <TableCell>{new Date(client.registeredDate).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openClientDetailsModal(client)}
-                        className="mr-2"
-                        title="View Client Details"
-                      >
-                        <Eye size={18} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openModal(client)}
-                        className="mr-2"
-                        disabled={loading}
-                      >
-                        <Edit size={18} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(client.id)}
-                        disabled={loading}
-                      >
-                        <Trash2 size={18} />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <ClientTable
+            clients={clients}
+            onOpenEditModal={handleOpenClientFormModal}
+            onDeleteClient={handleDeleteClient}
+            onOpenClientDetailsModal={handleOpenClientDetailsModal}
+            loadingAction={loadingAction}
+          />
         )}
 
-        <Modal
-          isOpen={isModalOpen}
-          onClose={closeModal}
-          title={currentClient ? 'Edit Client' : 'Add New Client'}
-          footer={
-            <div className="flex justify-end space-x-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={closeModal}
-                disabled={loading}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                form="client-form" // Link button to the form
-                disabled={loading}
-              >
-                {loading ? 'Saving...' : 'Save Client'}
-              </Button>
-            </div>
-          }
-        >
-          <form id="client-form" onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="clientName">Name</Label>
-              <Input
-                type="text"
-                id="clientName"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="clientEmail">Email</Label>
-              <Input
-                type="email"
-                id="clientEmail"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="clientStatus">Status</Label>
-              <Select value={status} onValueChange={(value: 'Active' | 'Inactive') => setStatus(value)} disabled={loading}>
-                <SelectTrigger id="clientStatus">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </form>
-        </Modal>
+        <ClientFormModal
+          isOpen={isClientFormModalOpen}
+          onClose={handleCloseClientFormModal}
+          currentClient={currentClientForForm}
+          onSubmit={handleClientFormSubmit}
+          loading={loadingAction}
+        />
 
-        {/* Client Details Modal */}
-        <Modal
+        <ClientDetailsModal
           isOpen={isClientDetailsModalOpen}
-          onClose={closeClientDetailsModal}
-          title={`Client Details: ${selectedClientForDetails?.name || 'N/A'}`}
-          description={selectedClientForDetails?.email}
-          footer={
-            <Button onClick={closeClientDetailsModal}>Close</Button>
-          }
-        >
-          {selectedClientForDetails && (
-            <div className="space-y-4 text-gray-700">
-              <p><strong>Client ID:</strong> {selectedClientForDetails.id}</p>
-              <p><strong>Name:</strong> {selectedClientForDetails.name}</p>
-              <p><strong>Email:</strong> {selectedClientForDetails.email}</p>
-              <p><strong>Status:</strong>
-                <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                  selectedClientForDetails.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                }`}>
-                  {selectedClientForDetails.status}
-                </span>
-              </p>
-              <p><strong>Registered Date:</strong> {new Date(selectedClientForDetails.registeredDate).toLocaleDateString()}</p>
-            </div>
-          )}
-        </Modal>
+          onClose={handleCloseClientDetailsModal}
+          client={selectedClientForDetails}
+        />
       </CardContent>
     </Card>
   );
