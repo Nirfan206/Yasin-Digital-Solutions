@@ -1,7 +1,7 @@
 const Order = require('../models/Order');
 const Subscription = require('../models/Subscription');
 const User = require('../models/User'); // To get client details for order creation and find admin
-const { createNotification } = require('../notificationController'); // Import notification helper
+const { createNotification } = require('./notificationController'); // Corrected import path
 
 // @desc    Get client's orders
 // @route   GET /api/client/orders
