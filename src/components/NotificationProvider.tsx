@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useCa
 import { useAuth } from '../context/AuthContext';
 import { Notification } from '../types/api';
 import { showError } from '../utils/toast';
+import { fetchUserNotifications, markNotificationAsReadApi, markAllNotificationsAsReadApi } from '../api/notifications'; // Import new API functions
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -19,9 +20,8 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const { user, token } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // Keep loading state for fetching
 
-  // Simulate fetching notifications from an API
   const fetchNotifications = useCallback(async () => {
     if (!user || !token) {
       setNotifications([]);
@@ -31,27 +31,13 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
     setLoading(true);
     try {
-      // In a real application, this would be an API call to your backend
-      // For now, we'll use mock data
-      const mockNotifications: Notification[] = [
-        { id: '1', userId: user.id, message: 'Your order #12345 is now in progress.', read: false, createdAt: new Date().toISOString(), link: '/client/dashboard/orders' },
-        { id: '2', userId: user.id, message: 'Welcome to Yasin Digital Solutions!', read: true, createdAt: new Date(Date.now() - 86400000).toISOString() },
-        { id: '3', userId: user.id, message: 'New job assigned: Website Redesign for Acme Corp.', read: false, createdAt: new Date().toISOString(), link: '/employee/dashboard/assigned-jobs' },
-        { id: '4', userId: user.id, message: 'Client John Doe registered.', read: false, createdAt: new Date().toISOString(), link: '/admin/dashboard/clients' },
-        { id: '5', userId: user.id, message: 'Your subscription for "Premium Support" will renew in 7 days.', read: false, createdAt: new Date().toISOString(), link: '/client/dashboard/subscriptions' },
-      ];
-
-      // Filter notifications relevant to the current user's role
-      const userNotifications = mockNotifications.filter(notif => {
-        if (notif.userId === user.id) return true; // Direct notifications
-        if (user.role === 'admin' && notif.link?.startsWith('/admin')) return true;
-        if (user.role === 'employee' && notif.link?.startsWith('/employee')) return true;
-        if (user.role === 'client' && notif.link?.startsWith('/client')) return true;
-        return false;
-      });
-
-      setNotifications(userNotifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-      setUnreadCount(userNotifications.filter(n => !n.read).length);
+      const { data, error } = await fetchUserNotifications(token);
+      if (data) {
+        setNotifications(data);
+        setUnreadCount(data.filter(n => !n.read).length);
+      } else if (error) {
+        showError(error);
+      }
     } catch (error) {
       showError('Failed to fetch notifications.');
     } finally {
@@ -66,18 +52,43 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 
-  const markAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(n => (n.id === id ? { ...n, read: true } : n))
-    );
-    setUnreadCount(prev => Math.max(0, prev - 1));
-    // In a real app, you'd send an API call to mark as read on the backend
+  const markAsRead = async (id: string) => {
+    if (!token) {
+      showError('You must be logged in to mark notifications as read.');
+      return;
+    }
+    try {
+      const { data, error } = await markNotificationAsReadApi(token, id);
+      if (data) {
+        setNotifications(prev =>
+          prev.map(n => (n._id === id ? { ...n, read: true } : n))
+        );
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      } else if (error) {
+        showError(error);
+      }
+    } catch (error) {
+      showError('Failed to mark notification as read.');
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    setUnreadCount(0);
-    // In a real app, you'd send an API call to mark all as read on the backend
+  const markAllAsRead = async () => {
+    if (!token) {
+      showError('You must be logged in to mark all notifications as read.');
+      return;
+    }
+    try {
+      const { data, error } = await markAllNotificationsAsReadApi(token);
+      if (data) {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+        setUnreadCount(0);
+        showSuccess(data.message || 'All notifications marked as read.');
+      } else if (error) {
+        showError(error);
+      }
+    } catch (error) {
+      showError('Failed to mark all notifications as read.');
+    }
   };
 
   return (
