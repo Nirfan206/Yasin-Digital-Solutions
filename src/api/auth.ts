@@ -11,6 +11,7 @@ interface AuthResponse {
     id: string;
     email: string;
     role: string;
+    name?: string; // Added name field
   };
   message?: string;
   error?: string;
@@ -47,4 +48,24 @@ export const fetchCurrentUser = async (token: string): Promise<AuthResponse> => 
     },
   });
   return response.json();
+};
+
+export const updateUserProfile = async (token: string, name: string): Promise<AuthResponse> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ name }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to update profile');
+    }
+    return { user: data.user, message: data.message };
+  } catch (error: any) {
+    return { error: error.message || 'An unknown error occurred' };
+  }
 };

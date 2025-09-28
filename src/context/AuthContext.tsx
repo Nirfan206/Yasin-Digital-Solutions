@@ -8,7 +8,8 @@ import { useNavigate } from 'react-router-dom';
 interface User {
   id: string;
   email: string;
-  role: string; // Add role to the User interface
+  role: string;
+  name?: string; // Added name to the User interface
 }
 
 interface AuthContextType {
@@ -18,6 +19,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
+  updateUser: (userData: Partial<User>) => void; // Added updateUser function
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -84,8 +86,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     navigate('/login');
   };
 
+  const updateUser = (userData: Partial<User>) => {
+    setUser(prevUser => (prevUser ? { ...prevUser, ...userData } : null));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -3,23 +3,22 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { showError, showSuccess } from '../../utils/toast';
-import { updateAdminProfile } from '../../api/admin'; // Import API function
+import { updateUserProfile } from '../../api/auth'; // Import the new API function
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 
 const AdminProfile = () => {
-  const { user, token } = useAuth();
+  const { user, token, updateUser } = useAuth();
   const [email, setEmail] = useState(user?.email || '');
-  const [name, setName] = useState(''); // Assuming a name field will be added to user profile
+  const [name, setName] = useState(user?.name || ''); // Initialize with user.name
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
       setEmail(user.email);
-      // If you add a 'name' field to your user model in the backend, fetch it here
-      // setName(user.name || ''); // For now, it's an empty string as there's no fetch for it
+      setName(user.name || '');
     }
   }, [user]);
 
@@ -31,10 +30,10 @@ const AdminProfile = () => {
     }
     setLoading(true);
     try {
-      const { data, error } = await updateAdminProfile(token, name);
-      if (data) {
+      const { user: updatedUser, error } = await updateUserProfile(token, name);
+      if (updatedUser) {
+        updateUser({ name: updatedUser.name }); // Update context with new name
         showSuccess('Admin profile updated successfully!');
-        // Optionally update the user context with new data if the backend returns it
       } else if (error) {
         showError(error);
       }

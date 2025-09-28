@@ -3,48 +3,40 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { showError, showSuccess } from '../../utils/toast';
+import { updateUserProfile } from '../../api/auth'; // Import the new API function
 import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 
 const EmployeeProfile = () => {
-  const { user, token } = useAuth();
+  const { user, token, updateUser } = useAuth();
   const [email, setEmail] = useState(user?.email || '');
-  const [name, setName] = useState(''); // Assuming a name field will be added to user profile
+  const [name, setName] = useState(user?.name || ''); // Initialize with user.name
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
       setEmail(user.email);
-      // If you add a 'name' field to your user model in the backend, fetch it here
-      // setName(user.name || '');
+      setName(user.name || '');
     }
   }, [user]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!token) {
+      showError('You must be logged in to update your profile.');
+      return;
+    }
     setLoading(true);
-    // In a real MERN app, you'd send a PUT request to your backend to update the user profile
-    // For now, we'll just simulate success/failure
     try {
-      // Example: const response = await fetch('http://localhost:5000/api/employees/profile', {
-      //   method: 'PUT',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${token}`,
-      //   },
-      //   body: JSON.stringify({ email, name }),
-      // });
-      // const data = await response.json();
-      // if (response.ok) {
-      //   showSuccess('Employee profile updated successfully!');
-      //   // Optionally update the user context with new data
-      // } else {
-      //   showError(data.error || 'Failed to update employee profile.');
-      // }
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      showSuccess('Employee profile updated successfully! (Backend integration needed)');
+      const { user: updatedUser, error } = await updateUserProfile(token, name);
+      if (updatedUser) {
+        updateUser({ name: updatedUser.name }); // Update context with new name
+        showSuccess('Employee profile updated successfully!');
+      } else if (error) {
+        showError(error);
+      }
     } catch (error) {
       showError('An error occurred while updating employee profile.');
     } finally {
