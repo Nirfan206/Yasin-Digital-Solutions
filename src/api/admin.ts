@@ -1,6 +1,6 @@
 "use client";
 
-import { ApiResponse, UserProfile, Order, Client, Employee, Job } from '../types/api';
+import { ApiResponse, UserProfile, Order, Client, Employee, Job, Subscription } from '../types/api';
 
 // This file will contain functions to interact with your MERN backend's admin-specific endpoints.
 // You will need to replace 'http://localhost:5000' with your actual backend URL.
@@ -226,7 +226,7 @@ export const deleteEmployee = async (token: string, employeeId: string): Promise
   }
 };
 
-// Job Management (New)
+// Job Management
 export const fetchAllJobs = async (token: string): Promise<ApiResponse<Job[]>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/jobs`, {
@@ -322,13 +322,107 @@ export const deleteJob = async (token: string, jobId: string): Promise<ApiRespon
   }
 };
 
+// Subscription Management (New)
+export const fetchAllSubscriptions = async (token: string): Promise<ApiResponse<Subscription[]>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/subscriptions`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch all subscriptions');
+    }
+    return { data };
+  } catch (error: any) {
+    return { error: error.message || 'An unknown error occurred' };
+  }
+};
+
+export const createSubscription = async (
+  token: string,
+  clientId: string,
+  serviceName: string,
+  startDate: string,
+  nextRenewalDate: string,
+  status: Subscription['status']
+): Promise<ApiResponse<Subscription>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/subscriptions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ clientId, serviceName, startDate, nextRenewalDate, status }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to create subscription');
+    }
+    return { data };
+  } catch (error: any) {
+    return { error: error.message || 'An unknown error occurred' };
+  }
+};
+
+export const updateSubscription = async (
+  token: string,
+  subscriptionId: string,
+  clientId: string,
+  serviceName: string,
+  startDate: string,
+  nextRenewalDate: string,
+  status: Subscription['status']
+): Promise<ApiResponse<Subscription>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/subscriptions/${subscriptionId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ clientId, serviceName, startDate, nextRenewalDate, status }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to update subscription');
+    }
+    return { data };
+  } catch (error: any) {
+    return { error: error.message || 'An unknown error occurred' };
+  }
+};
+
+export const deleteSubscription = async (token: string, subscriptionId: string): Promise<ApiResponse<{ message: string }>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/subscriptions/${subscriptionId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to delete subscription');
+    }
+    return { data };
+  } catch (error: any) {
+    return { error: error.message || 'An unknown error occurred' };
+  }
+};
+
 
 // New functions for Admin Overview
-export const fetchAdminOverviewData = async (token: string): Promise<ApiResponse<{ totalClients: number; totalEmployees: number; totalOrders: number; totalJobs: number }>> => {
+export const fetchAdminOverviewData = async (token: string): Promise<ApiResponse<{ totalClients: number; totalEmployees: number; totalOrders: number; totalJobs: number; totalSubscriptions: number }>> => {
   try {
     // In a real backend, this would be a single endpoint returning all counts.
     // For now, we'll simulate by fetching all and getting the length.
-    const [clientsResponse, employeesResponse, ordersResponse, jobsResponse] = await Promise.all([
+    const [clientsResponse, employeesResponse, ordersResponse, jobsResponse, subscriptionsResponse] = await Promise.all([
       fetch(`${API_BASE_URL}/clients`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -345,15 +439,20 @@ export const fetchAdminOverviewData = async (token: string): Promise<ApiResponse
         method: 'GET',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       }),
+      fetch(`${API_BASE_URL}/subscriptions`, { // Fetch all subscriptions for overview
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      }),
     ]);
 
     const clientsData = await clientsResponse.json();
     const employeesData = await employeesResponse.json();
     const ordersData = await ordersResponse.json();
     const jobsData = await jobsResponse.json();
+    const subscriptionsData = await subscriptionsResponse.json();
 
-    if (!clientsResponse.ok || !employeesResponse.ok || !ordersResponse.ok || !jobsResponse.ok) {
-      throw new Error(clientsData.error || employeesData.error || ordersData.error || jobsData.error || 'Failed to fetch overview data');
+    if (!clientsResponse.ok || !employeesResponse.ok || !ordersResponse.ok || !jobsResponse.ok || !subscriptionsResponse.ok) {
+      throw new Error(clientsData.error || employeesData.error || ordersData.error || jobsData.error || subscriptionsData.error || 'Failed to fetch overview data');
     }
 
     return {
@@ -361,7 +460,8 @@ export const fetchAdminOverviewData = async (token: string): Promise<ApiResponse
         totalClients: clientsData.length,
         totalEmployees: employeesData.length,
         totalOrders: ordersData.length,
-        totalJobs: jobsData.length, // Include total jobs
+        totalJobs: jobsData.length,
+        totalSubscriptions: subscriptionsData.length, // Include total subscriptions
       },
     };
   } catch (error: any) {

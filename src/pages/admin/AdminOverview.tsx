@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Users, Building2, ListOrdered, Briefcase } from 'lucide-react'; // Import Briefcase icon
+import { Users, Building2, ListOrdered, Briefcase, CalendarCheck } from 'lucide-react'; // Import CalendarCheck icon
 import { useAuth } from '../../context/AuthContext';
 import { fetchAdminOverviewData } from '../../api/admin';
 import { showError } from '../../utils/toast';
@@ -12,7 +12,8 @@ const AdminOverview = () => {
   const [totalClients, setTotalClients] = useState(0);
   const [totalEmployees, setTotalEmployees] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
-  const [totalJobs, setTotalJobs] = useState(0); // New state for total jobs
+  const [totalJobs, setTotalJobs] = useState(0);
+  const [totalSubscriptions, setTotalSubscriptions] = useState(0); // New state for total subscriptions
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,7 +30,8 @@ const AdminOverview = () => {
           setTotalClients(data.totalClients);
           setTotalEmployees(data.totalEmployees);
           setTotalOrders(data.totalOrders);
-          setTotalJobs(data.totalJobs); // Set total jobs
+          setTotalJobs(data.totalJobs);
+          setTotalSubscriptions(data.totalSubscriptions); // Set total subscriptions
         } else if (error) {
           showError(error);
         }
@@ -48,7 +50,7 @@ const AdminOverview = () => {
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4"> {/* Adjusted grid for 4 cards */}
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5"> {/* Adjusted grid for 5 cards */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
@@ -94,6 +96,18 @@ const AdminOverview = () => {
           <div className="text-2xl font-bold">{totalJobs}</div>
           <p className="text-xs text-muted-foreground">
             All jobs currently in the system.
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Total Subscriptions</CardTitle>
+          <CalendarCheck className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{totalSubscriptions}</div>
+          <p className="text-xs text-muted-foreground">
+            All active and pending client subscriptions.
           </p>
         </CardContent>
       </Card>
