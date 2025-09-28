@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { ListOrdered, CalendarCheck, ClipboardList } from 'lucide-react'; // Changed DollarSign to ClipboardList
+import { ListOrdered, CalendarCheck, ClipboardList, CheckCircle2 } from 'lucide-react'; // Added CheckCircle2 for completed orders
 import { useAuth } from '../../context/AuthContext';
 import { fetchClientOrders, fetchClientSubscriptions } from '../../api/client';
 import { showError } from '../../utils/toast';
@@ -13,6 +13,7 @@ const ClientOverview = () => {
   const [totalOrders, setTotalOrders] = useState(0);
   const [activeSubscriptions, setActiveSubscriptions] = useState(0);
   const [pendingOrders, setPendingOrders] = useState(0);
+  const [completedOrders, setCompletedOrders] = useState(0); // New state for completed orders
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,6 +29,7 @@ const ClientOverview = () => {
         if (ordersData) {
           setTotalOrders(ordersData.length);
           setPendingOrders(ordersData.filter(order => order.status === 'Pending' || order.status === 'In Progress' || order.status === 'Under Review').length);
+          setCompletedOrders(ordersData.filter(order => order.status === 'Completed').length); // Calculate completed orders
         } else if (ordersError) {
           showError(ordersError);
         }
@@ -53,7 +55,7 @@ const ClientOverview = () => {
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4"> {/* Adjusted grid for 4 cards */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
@@ -81,12 +83,24 @@ const ClientOverview = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
-          <ClipboardList className="h-4 w-4 text-muted-foreground" /> {/* Changed icon here */}
+          <ClipboardList className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{pendingOrders}</div>
           <p className="text-xs text-muted-foreground">
             {pendingOrders} orders are currently pending review or in progress.
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Completed Orders</CardTitle>
+          <CheckCircle2 className="h-4 w-4 text-muted-foreground" /> {/* New card for completed orders */}
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{completedOrders}</div>
+          <p className="text-xs text-muted-foreground">
+            You have completed {completedOrders} orders.
           </p>
         </CardContent>
       </Card>
