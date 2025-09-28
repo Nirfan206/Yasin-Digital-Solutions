@@ -143,7 +143,7 @@ const ClientOrders = () => {
                           {order.status}
                         </span>
                       </TableCell>
-                      <TableCell>{order.orderDate}</TableCell>
+                      <TableCell>{new Date(order.orderDate).toLocaleDateString()}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
