@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
 import { useAuth } from '../../context/AuthContext';
 import { fetchAssignedJobs, updateJobStatus } from '../../api/employee'; // Import API functions
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 
 interface Job {
   _id: string;
@@ -64,72 +66,76 @@ const EmployeeAssignedJobs = () => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-4">Your Assigned Jobs</h2>
-      {fetchingJobs ? (
-        <p className="text-gray-600">Loading assigned jobs...</p>
-      ) : jobs.length === 0 ? (
-        <p className="text-gray-600">You currently have no assigned jobs.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job ID</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {jobs.map((job) => (
-                <tr key={job._id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{job._id}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{job.title}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{job.client}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{job.dueDate}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      job.priority === 'High' ? 'bg-red-100 text-red-800' :
-                      job.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
-                      {job.priority}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      job.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                      job.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                      job.status === 'Assigned' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-purple-100 text-purple-800'
-                    }`}>
-                      {job.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <select
-                      value={job.status}
-                      onChange={(e) => handleStatusChange(job._id, e.target.value as Job['status'])}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      disabled={updatingStatus === job._id}
-                    >
-                      <option value="Assigned">Assigned</option>
-                      <option value="In Progress">In Progress</option>
-                      <option value="Under Review">Under Review</option>
-                      <option value="Completed">Completed</option>
-                    </select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+    <Card className="w-full mx-auto">
+      <CardHeader>
+        <CardTitle className="text-2xl font-semibold text-gray-800">Your Assigned Jobs</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {fetchingJobs ? (
+          <p className="text-gray-600">Loading assigned jobs...</p>
+        ) : jobs.length === 0 ? (
+          <p className="text-gray-600">You currently have no assigned jobs.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Job ID</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Client</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  <TableHead>Priority</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {jobs.map((job) => (
+                  <TableRow key={job._id}>
+                    <TableCell className="font-medium">{job._id}</TableCell>
+                    <TableCell>{job.title}</TableCell>
+                    <TableCell>{job.client}</TableCell>
+                    <TableCell>{job.dueDate}</TableCell>
+                    <TableCell>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        job.priority === 'High' ? 'bg-red-100 text-red-800' :
+                        job.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {job.priority}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        job.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                        job.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                        job.status === 'Assigned' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-purple-100 text-purple-800'
+                      }`}>
+                        {job.status}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <select
+                        value={job.status}
+                        onChange={(e) => handleStatusChange(job._id, e.target.value as Job['status'])}
+                        className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        disabled={updatingStatus === job._id}
+                      >
+                        <option value="Assigned">Assigned</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Under Review">Under Review</option>
+                        <option value="Completed">Completed</option>
+                      </select>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
