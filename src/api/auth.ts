@@ -59,3 +59,23 @@ export const updateUserProfile = async (token: string, name: string): Promise<Au
     return { error: error.message || 'An unknown error occurred' };
   }
 };
+
+export const updateUserPassword = async (token: string, currentPassword: string, newPassword: string): Promise<AuthResponse> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/password`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to update password');
+    }
+    return { message: data.message };
+  } catch (error: any) {
+    return { error: error.message || 'An unknown error occurred' };
+  }
+};

@@ -8,17 +8,22 @@ import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { ApiResponse, UserProfile } from '../types/api'; // Import ApiResponse and UserProfile
+import { updateUserPassword } from '../api/auth'; // Import the new password update function
 
 interface UserProfileFormProps {
   title: string;
-  onUpdateProfile: (token: string, name: string) => Promise<ApiResponse<UserProfile>>; // New prop for update logic
+  onUpdateProfile: (token: string, name: string) => Promise<ApiResponse<UserProfile>>; // Prop for name update logic
 }
 
 const UserProfileForm = ({ title, onUpdateProfile }: UserProfileFormProps) => {
   const { user, token, updateUser } = useAuth();
   const [email, setEmail] = useState(user?.email || '');
   const [name, setName] = useState(user?.name || '');
-  const [loading, setLoading] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [loadingNameUpdate, setLoadingNameUpdate] = useState(false);
+  const [loadingPasswordUpdate, setLoadingPasswordUpdate] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -27,62 +32,139 @@ const UserProfileForm = ({ title, onUpdateProfile }: UserProfileFormProps) => {
     }
   }, [user]);
 
-  const handleUpdateProfile = async (e: React.FormEvent) => {
+  const handleUpdateName = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) {
       showError('You must be logged in to update your profile.');
       return;
     }
-    setLoading(true);
+    setLoadingNameUpdate(true);
     try {
-      // Use the onUpdateProfile prop instead of a hardcoded API call
       const { data: updatedUser, error } = await onUpdateProfile(token, name);
       if (updatedUser) {
         updateUser({ name: updatedUser.name });
-        showSuccess('Profile updated successfully!');
+        showSuccess('Profile name updated successfully!');
       } else if (error) {
         showError(error);
       }
     } catch (error) {
-      showError('An error occurred while updating profile.');
+      showError('An error occurred while updating profile name.');
     } finally {
-      setLoading(false);
+      setLoadingNameUpdate(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!token) {
+      showError('You must be logged in to update your password.');
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      showError('New password and confirmation do not match.');
+      return;
+    }
+    if (!currentPassword || !newPassword) {
+      showError('Please fill in all password fields.');
+      return;
+    }
+
+    setLoadingPasswordUpdate(true);
+    try {
+      const { message, error } = await updateUserPassword(token, currentPassword, newPassword);
+      if (message) {
+        showSuccess(message);
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+      } else if (error) {
+        showError(error);
+      }
+    } catch (error) {
+      showError('An error occurred while updating password.');
+    } finally {
+      setLoadingPasswordUpdate(false);
     }
   };
 
   return (
-    <Card className="w-full max-w-lg mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl font-semibold text-gray-800">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleUpdateProfile} className="space-y-4">
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="m@example.com"
-              value={email}
-              disabled
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              type="text"
-              placeholder="Your Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Updating...' : 'Update Profile'}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <Card className="w-full max-w-lg mx-auto">
+        <CardHeader>
+          <CardTitle className="text-2xl font-semibold text-gray-800">{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleUpdateName} className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@example.com"
+                value={email}
+                disabled
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Your Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loadingNameUpdate}>
+              {loadingNameUpdate ? 'Updating Name...' : 'Update Name'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card className="w-full max-w-lg mx-auto">
+        <CardHeader>
+          <CardTitle className="text-2xl font-semibold text-gray-800">Change Password</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleUpdatePassword} className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="currentPassword">Current Password</Label>
+              <Input
+                id="currentPassword"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="newPassword">New Password</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="confirmNewPassword">Confirm New Password</Label>
+              <Input
+                id="confirmNewPassword"
+                type="password"
+                value={confirmNewPassword}
+                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={loadingPasswordUpdate}>
+              {loadingPasswordUpdate ? 'Updating Password...' : 'Update Password'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
