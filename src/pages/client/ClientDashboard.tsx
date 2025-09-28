@@ -3,14 +3,14 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import DashboardLayout from '../../components/DashboardLayout';
-import { User, ListOrdered, CalendarCheck, LayoutDashboard } from 'lucide-react'; // Added LayoutDashboard icon
-import ClientProfile from './ClientProfile';
+import { User, ListOrdered, CalendarCheck, LayoutDashboard } from 'lucide-react';
+import UserProfileForm from '../../components/UserProfileForm'; // Import the new generic profile form
 import ClientOrders from './ClientOrders';
 import ClientSubscriptions from './ClientSubscriptions';
-import ClientOverview from './ClientOverview'; // Import the new overview component
+import ClientOverview from './ClientOverview';
 
 const clientNav = [
-  { path: 'overview', label: 'Overview', icon: LayoutDashboard }, // New overview link
+  { path: 'overview', label: 'Overview', icon: LayoutDashboard },
   { path: 'profile', label: 'Profile', icon: User },
   { path: 'orders', label: 'Orders', icon: ListOrdered },
   { path: 'subscriptions', label: 'Subscriptions', icon: CalendarCheck },
@@ -20,12 +20,11 @@ const ClientDashboard = () => {
   return (
     <DashboardLayout title="Client Dashboard" sidebarNav={clientNav}>
       <Routes>
-        <Route index element={<Navigate to="overview" replace />} /> {/* Default route to overview */}
-        <Route path="overview" element={<ClientOverview />} /> {/* New overview route */}
-        <Route path="profile" element={<ClientProfile />} />
+        <Route index element={<Navigate to="overview" replace />} />
+        <Route path="overview" element={<ClientOverview />} />
+        <Route path="profile" element={<UserProfileForm title="Your Profile" />} /> {/* Use generic form */}
         <Route path="orders" element={<ClientOrders />} />
         <Route path="subscriptions" element={<ClientSubscriptions />} />
-        {/* Add more client-specific routes here */}
       </Routes>
     </DashboardLayout>
   );

@@ -4,7 +4,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import DashboardLayout from '../../components/DashboardLayout';
 import { User, Briefcase, CalendarCheck } from 'lucide-react';
-import EmployeeProfile from './EmployeeProfile';
+import UserProfileForm from '../../components/UserProfileForm'; // Import the new generic profile form
 import EmployeeAssignedJobs from './EmployeeAssignedJobs';
 import EmployeeCompletedJobs from './EmployeeCompletedJobs';
 
@@ -18,11 +18,10 @@ const EmployeeDashboard = () => {
   return (
     <DashboardLayout title="Employee Dashboard" sidebarNav={employeeNav}>
       <Routes>
-        <Route index element={<Navigate to="profile" replace />} /> {/* Default route */}
-        <Route path="profile" element={<EmployeeProfile />} />
+        <Route index element={<Navigate to="profile" replace />} />
+        <Route path="profile" element={<UserProfileForm title="Your Employee Profile" />} /> {/* Use generic form */}
         <Route path="assigned-jobs" element={<EmployeeAssignedJobs />} />
         <Route path="completed-jobs" element={<EmployeeCompletedJobs />} />
-        {/* Add more employee-specific routes here */}
       </Routes>
     </DashboardLayout>
   );
