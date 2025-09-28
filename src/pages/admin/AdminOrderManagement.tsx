@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { fetchAllOrders, updateOrderStatus } from '../../api/admin'; // Import API functions
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'; // Import shadcn/ui Select
 
 interface Order {
   _id: string;
@@ -110,18 +111,22 @@ const AdminOrderManagement = () => {
                     </TableCell>
                     <TableCell>{order.orderDate}</TableCell>
                     <TableCell>
-                      <select
+                      <Select
                         value={order.status}
-                        onChange={(e) => handleStatusChange(order._id, e.target.value as Order['status'])}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        onValueChange={(value: Order['status']) => handleStatusChange(order._id, value)}
                         disabled={updatingStatus === order._id}
                       >
-                        <option value="Pending">Pending</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Under Review">Under Review</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Cancelled">Cancelled</option>
-                      </select>
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Update Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Pending">Pending</SelectItem>
+                          <SelectItem value="In Progress">In Progress</SelectItem>
+                          <SelectItem value="Under Review">Under Review</SelectItem>
+                          <SelectItem value="Completed">Completed</SelectItem>
+                          <SelectItem value="Cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                   </TableRow>
                 ))}
