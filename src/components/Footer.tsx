@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Facebook, Twitter, Linkedin } from 'lucide-react'; // Importing social media icons
 
 const Footer = () => {
   return (
@@ -48,17 +49,16 @@ const Footer = () => {
           </ul>
         </div>
 
-        {/* Column 3: Placeholder for future content (e.g., Social Media, Contact Info) */}
+        {/* Column 3: Social Media & Contact Info */}
         <div>
           <h3 className="text-lg font-semibold mb-4">Connect With Us</h3>
           <p className="text-gray-400">
             Stay updated with our latest news and services.
           </p>
-          {/* Placeholder for social media icons */}
           <div className="flex space-x-4 mt-4">
-            {/* <a href="#" className="text-gray-400 hover:text-blue-400"><Facebook size={24} /></a>
+            <a href="#" className="text-gray-400 hover:text-blue-400"><Facebook size={24} /></a>
             <a href="#" className="text-gray-400 hover:text-blue-400"><Twitter size={24} /></a>
-            <a href="#" className="text-gray-400 hover:text-blue-400"><Linkedin size={24} /></a> */}
+            <a href="#" className="text-gray-400 hover:text-blue-400"><Linkedin size={24} /></a>
           </div>
         </div>
       </div>
