@@ -3,17 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { showError, showSuccess } from '../utils/toast';
-import { updateUserProfile } from '../api/auth';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { ApiResponse, UserProfile } from '../types/api'; // Import ApiResponse and UserProfile
 
 interface UserProfileFormProps {
   title: string;
+  onUpdateProfile: (token: string, name: string) => Promise<ApiResponse<UserProfile>>; // New prop for update logic
 }
 
-const UserProfileForm = ({ title }: UserProfileFormProps) => {
+const UserProfileForm = ({ title, onUpdateProfile }: UserProfileFormProps) => {
   const { user, token, updateUser } = useAuth();
   const [email, setEmail] = useState(user?.email || '');
   const [name, setName] = useState(user?.name || '');
@@ -34,7 +35,8 @@ const UserProfileForm = ({ title }: UserProfileFormProps) => {
     }
     setLoading(true);
     try {
-      const { user: updatedUser, error } = await updateUserProfile(token, name);
+      // Use the onUpdateProfile prop instead of a hardcoded API call
+      const { data: updatedUser, error } = await onUpdateProfile(token, name);
       if (updatedUser) {
         updateUser({ name: updatedUser.name });
         showSuccess('Profile updated successfully!');

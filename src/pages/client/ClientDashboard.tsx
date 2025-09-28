@@ -4,10 +4,11 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import DashboardLayout from '../../components/DashboardLayout';
 import { User, ListOrdered, CalendarCheck, LayoutDashboard } from 'lucide-react';
-import UserProfileForm from '../../components/UserProfileForm'; // Import the new generic profile form
+import UserProfileForm from '../../components/UserProfileForm';
 import ClientOrders from './ClientOrders';
 import ClientSubscriptions from './ClientSubscriptions';
 import ClientOverview from './ClientOverview';
+import { updateUserProfile } from '../../api/auth'; // Import the specific update function
 
 const clientNav = [
   { path: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -22,7 +23,7 @@ const ClientDashboard = () => {
       <Routes>
         <Route index element={<Navigate to="overview" replace />} />
         <Route path="overview" element={<ClientOverview />} />
-        <Route path="profile" element={<UserProfileForm title="Your Profile" />} /> {/* Use generic form */}
+        <Route path="profile" element={<UserProfileForm title="Your Profile" onUpdateProfile={updateUserProfile} />} /> {/* Pass updateUserProfile */}
         <Route path="orders" element={<ClientOrders />} />
         <Route path="subscriptions" element={<ClientSubscriptions />} />
       </Routes>
