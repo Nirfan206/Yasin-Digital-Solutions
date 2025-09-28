@@ -11,6 +11,7 @@ import Login from './pages/Login';
 import { AuthProvider } from './context/AuthContext';
 import ToastProvider from './components/ToastProvider';
 import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
+import { NotificationProvider } from './components/NotificationProvider'; // Import NotificationProvider
 
 // Dashboard Pages
 import ClientDashboard from './pages/client/ClientDashboard';
@@ -24,31 +25,33 @@ function App() {
     <Router>
       <ToastProvider />
       <AuthProvider>
-        <div className="flex flex-col min-h-screen">
-          <Header />
-          <main className="flex-grow">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/login" element={<Login />} />
+        <NotificationProvider> {/* Wrap with NotificationProvider */}
+          <div className="flex flex-col min-h-screen">
+            <Header />
+            <main className="flex-grow">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/services" element={<Services />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/login" element={<Login />} />
 
-              {/* Protected Routes for Dashboards */}
-              <Route element={<ProtectedRoute allowedRoles={['client']} />}>
-                <Route path="/client/dashboard/*" element={<ClientDashboard />} />
-              </Route>
-              <Route element={<ProtectedRoute allowedRoles={['employee']} />}>
-                <Route path="/employee/dashboard/*" element={<EmployeeDashboard />} />
-              </Route>
-              <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
-                <Route path="/admin/dashboard/*" element={<AdminDashboard />} />
-              </Route>
+                {/* Protected Routes for Dashboards */}
+                <Route element={<ProtectedRoute allowedRoles={['client']} />}>
+                  <Route path="/client/dashboard/*" element={<ClientDashboard />} />
+                </Route>
+                <Route element={<ProtectedRoute allowedRoles={['employee']} />}>
+                  <Route path="/employee/dashboard/*" element={<EmployeeDashboard />} />
+                </Route>
+                <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
+                  <Route path="/admin/dashboard/*" element={<AdminDashboard />} />
+                </Route>
 
-              {/* Add more specific dashboard sub-routes later */}
-            </Routes>
-          </main>
-          <Footer />
-        </div>
+                {/* Add more specific dashboard sub-routes later */}
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </NotificationProvider>
       </AuthProvider>
     </Router>
   );

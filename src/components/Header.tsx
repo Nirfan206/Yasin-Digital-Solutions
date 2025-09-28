@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LogOut, LayoutDashboard } from 'lucide-react'; // Importing icons
 import { Button } from './ui/button'; // Import shadcn/ui Button
+import NotificationBell from './NotificationBell'; // Import NotificationBell
 
 const Header = () => {
   const { user, logout } = useAuth();
@@ -49,6 +50,9 @@ const Header = () => {
                     <span>Dashboard</span>
                   </Link>
                 </Button>
+              </li>
+              <li>
+                <NotificationBell /> {/* Integrate NotificationBell here */}
               </li>
               <li>
                 <Button
