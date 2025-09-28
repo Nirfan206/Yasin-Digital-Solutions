@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { fetchCompletedJobs } from '../../api/employee'; // Import API function
+import { fetchCompletedJobs } from '../../api/employee';
 import { showError } from '../../utils/toast';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
-import { Job } from '../../types/api'; // Import Job interface
+import CompletedJobsTable from '../../components/employee/jobs/CompletedJobsTable'; // Import the new component
+import { Job } from '../../types/api';
 
 const EmployeeCompletedJobs = () => {
   const { token } = useAuth();
@@ -22,7 +22,6 @@ const EmployeeCompletedJobs = () => {
       setFetchingJobs(true);
       const { data, error } = await fetchCompletedJobs(token);
       if (data) {
-        // Directly use the data from the API, as completionDate and feedback are optional in Job interface
         setCompletedJobs(data);
       } else if (error) {
         showError(error);
@@ -43,30 +42,7 @@ const EmployeeCompletedJobs = () => {
         ) : completedJobs.length === 0 ? (
           <p className="text-gray-600">You have not completed any jobs yet.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Job ID</TableHead>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Completion Date</TableHead>
-                  <TableHead>Feedback</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {completedJobs.map((job) => (
-                  <TableRow key={job._id}>
-                    <TableCell className="font-medium">{job._id}</TableCell>
-                    <TableCell>{job.title}</TableCell>
-                    <TableCell>{job.client}</TableCell>
-                    <TableCell>{job.completionDate ? new Date(job.completionDate).toLocaleDateString() : 'N/A'}</TableCell> {/* Display actual completionDate or 'N/A' */}
-                    <TableCell className="max-w-xs truncate">{job.feedback || 'N/A'}</TableCell> {/* Display actual feedback or 'N/A' */}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <CompletedJobsTable jobs={completedJobs} />
         )}
       </CardContent>
     </Card>

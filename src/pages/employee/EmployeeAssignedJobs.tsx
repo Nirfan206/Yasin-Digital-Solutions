@@ -3,18 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
 import { useAuth } from '../../context/AuthContext';
-import { fetchAssignedJobs, updateJobStatus } from '../../api/employee'; // Import API functions
+import { fetchAssignedJobs, updateJobStatus } from '../../api/employee';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'; // Import shadcn/ui Select
-import { Job } from '../../types/api'; // Import Job interface
-import { Loader2 } from 'lucide-react'; // Import Loader2 icon for loading state
+import AssignedJobsTable from '../../components/employee/jobs/AssignedJobsTable'; // Import the new component
+import { Job } from '../../types/api';
 
 const EmployeeAssignedJobs = () => {
   const { token } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [fetchingJobs, setFetchingJobs] = useState(true);
-  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null); // To track which job is being updated
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
 
   useEffect(() => {
     const getAssignedJobs = async () => {
@@ -70,74 +68,11 @@ const EmployeeAssignedJobs = () => {
         ) : jobs.length === 0 ? (
           <p className="text-gray-600">You currently have no assigned jobs.</p>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Job ID</TableHead>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Priority</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {jobs.map((job) => (
-                  <TableRow key={job._id}>
-                    <TableCell className="font-medium">{job._id}</TableCell>
-                    <TableCell>{job.title}</TableCell>
-                    <TableCell>{job.client}</TableCell>
-                    <TableCell>{new Date(job.dueDate).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        job.priority === 'High' ? 'bg-red-100 text-red-800' :
-                        job.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-green-100 text-green-800'
-                      }`}>
-                        {job.priority}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        job.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                        job.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                        job.status === 'Assigned' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-purple-100 text-purple-800'
-                      }`}>
-                        {job.status}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={job.status}
-                        onValueChange={(value: Job['status']) => handleStatusChange(job._id, value)}
-                        disabled={updatingStatus === job._id}
-                      >
-                        <SelectTrigger className="w-[180px]">
-                          {updatingStatus === job._id ? (
-                            <div className="flex items-center space-x-2">
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              <span>Updating...</span>
-                            </div>
-                          ) : (
-                            <SelectValue placeholder="Update Status" />
-                          )}
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Assigned">Assigned</SelectItem>
-                          <SelectItem value="In Progress">In Progress</SelectItem>
-                          <SelectItem value="Under Review">Under Review</SelectItem>
-                          <SelectItem value="Completed">Completed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <AssignedJobsTable
+            jobs={jobs}
+            updatingStatus={updatingStatus}
+            onStatusChange={handleStatusChange}
+          />
         )}
       </CardContent>
     </Card>
