@@ -1,0 +1,101 @@
+const Job = require('../../models/Job');
+
+// @desc    Get all jobs
+// @route   GET /api/admin/jobs
+// @access  Private (Admin)
+const getAllJobs = async (req, res) => {
+  try {
+    const jobs = await Job.find({}).sort({ dueDate: 1 });
+    res.status(200).json(jobs);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error fetching jobs' });
+  }
+};
+
+// @desc    Create a new job
+// @route   POST /api/admin/jobs
+// @access  Private (Admin)
+const createJob = async (req, res) => {
+  const { title, client, dueDate, priority, status, employeeId } = req.body;
+
+  if (!title || !client || !dueDate || !priority || !status) {
+    return res.status(400).json({ error: 'Please add all required job fields' });
+  }
+
+  try {
+    const job = await Job.create({
+      title,
+      client,
+      dueDate,
+      priority,
+      status,
+      employeeId: employeeId || undefined, // Can be unassigned
+    });
+    res.status(201).json(job);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error creating job' });
+  }
+};
+
+// @desc    Update job details
+// @route   PUT /api/admin/jobs/:id
+// @access  Private (Admin)
+const updateJob = async (req, res) => {
+  const { id } = req.params;
+  const { title, client, dueDate, priority, status, employeeId } = req.body;
+
+  try {
+    const job = await Job.findById(id);
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    job.title = title || job.title;
+    job.client = client || job.client;
+    job.dueDate = dueDate || job.dueDate;
+    job.priority = priority || job.priority;
+    job.status = status || job.status;
+    job.employeeId = employeeId === 'unassigned' ? undefined : employeeId || job.employeeId;
+
+    if (job.status === 'Completed' && !job.completionDate) {
+      job.completionDate = Date.now();
+    } else if (job.status !== 'Completed' && job.completionDate) {
+      job.completionDate = undefined;
+    }
+
+    const updatedJob = await job.save();
+    res.status(200).json(updatedJob);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error updating job' });
+  }
+};
+
+// @desc    Delete a job
+// @route   DELETE /api/admin/jobs/:id
+// @access  Private (Admin)
+const deleteJob = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const job = await Job.findById(id);
+    if (!job) {
+      return res.status(404).json({ error: 'Job not found' });
+    }
+
+    await job.deleteOne();
+    res.status(200).json({ message: 'Job removed successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error deleting job' });
+  }
+};
+
+module.exports = {
+  getAllJobs,
+  createJob,
+  updateJob,
+  deleteJob,
+};

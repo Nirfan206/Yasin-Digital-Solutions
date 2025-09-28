@@ -1,34 +1,13 @@
 const express = require('express');
 const { protect, authorizeRoles } = require('../middleware/authMiddleware');
-const {
-  getAllClients,
-  createClient,
-  updateClient,
-  deleteClient,
-} = require('../controllers/adminController'); // Using adminController for client management
-const {
-  getAllEmployees,
-  createEmployee,
-  updateEmployee,
-  deleteEmployee,
-} = require('../controllers/adminController'); // Using adminController for employee management
-const {
-  getAllOrders,
-  updateOrderStatus,
-} = require('../controllers/adminController'); // Using adminController for order management
-const {
-  getAllJobs,
-  createJob,
-  updateJob,
-  deleteJob,
-} = require('../controllers/adminController'); // Using adminController for job management
-const {
-  getAllSubscriptions,
-  createSubscription,
-  updateSubscription,
-  deleteSubscription,
-} = require('../controllers/adminController'); // Using adminController for subscription management
-const { getAdminOverviewData } = require('../controllers/adminController'); // For overview
+
+// Import modular controllers
+const clientController = require('../controllers/admin/clientController');
+const employeeController = require('../controllers/admin/employeeController');
+const orderController = require('../controllers/admin/orderController');
+const jobController = require('../controllers/admin/jobController');
+const subscriptionController = require('../controllers/admin/subscriptionController');
+const overviewController = require('../controllers/admin/overviewController');
 
 const router = express.Router();
 
@@ -37,41 +16,41 @@ router.use(protect, authorizeRoles('admin'));
 
 // Client Management
 router.route('/clients')
-  .get(getAllClients)
-  .post(createClient);
+  .get(clientController.getAllClients)
+  .post(clientController.createClient);
 router.route('/clients/:id')
-  .put(updateClient)
-  .delete(deleteClient);
+  .put(clientController.updateClient)
+  .delete(clientController.deleteClient);
 
 // Employee Management
 router.route('/employees')
-  .get(getAllEmployees)
-  .post(createEmployee);
+  .get(employeeController.getAllEmployees)
+  .post(employeeController.createEmployee);
 router.route('/employees/:id')
-  .put(updateEmployee)
-  .delete(deleteEmployee);
+  .put(employeeController.updateEmployee)
+  .delete(employeeController.deleteEmployee);
 
 // Order Management
-router.get('/orders', getAllOrders);
-router.put('/orders/:id/status', updateOrderStatus);
+router.get('/orders', orderController.getAllOrders);
+router.put('/orders/:id/status', orderController.updateOrderStatus);
 
 // Job Management
 router.route('/jobs')
-  .get(getAllJobs)
-  .post(createJob);
+  .get(jobController.getAllJobs)
+  .post(jobController.createJob);
 router.route('/jobs/:id')
-  .put(updateJob)
-  .delete(deleteJob);
+  .put(jobController.updateJob)
+  .delete(jobController.deleteJob);
 
 // Subscription Management
 router.route('/subscriptions')
-  .get(getAllSubscriptions)
-  .post(createSubscription);
+  .get(subscriptionController.getAllSubscriptions)
+  .post(subscriptionController.createSubscription);
 router.route('/subscriptions/:id')
-  .put(updateSubscription)
-  .delete(deleteSubscription);
+  .put(subscriptionController.updateSubscription)
+  .delete(subscriptionController.deleteSubscription);
 
 // Admin Overview
-router.get('/overview', getAdminOverviewData);
+router.get('/overview', overviewController.getAdminOverviewData);
 
 module.exports = router;
