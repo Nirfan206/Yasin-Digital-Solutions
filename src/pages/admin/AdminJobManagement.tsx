@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { fetchAllJobs, createJob, updateJob, deleteJob } from '../../api/admin/jobs'; // Import job API functions from new file
 import { fetchAllEmployees } from '../../api/admin/employees'; // Import employee API functions from new file
 import { fetchAllOrders } from '../../api/admin/orders'; // Import fetchAllOrders for modal
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } = '../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Button } from '../../components/ui/button';
 import { Label } from '../../components/ui/label';
@@ -35,6 +35,10 @@ const AdminJobManagement = () => {
   // State for "View Order Details" modal
   const [isOrderDetailsModalOpen, setIsOrderDetailsModalOpen] = useState(false);
   const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<Order | null>(null);
+
+  // State for "View Job Details" modal
+  const [isJobDetailsModalOpen, setIsJobDetailsModalOpen] = useState(false);
+  const [selectedJobForDetails, setSelectedJobForDetails] = useState<Job | null>(null);
 
 
   useEffect(() => {
@@ -192,6 +196,20 @@ const AdminJobManagement = () => {
     setSelectedOrderForDetails(null);
   };
 
+  const getEmployeeName = (id: string | undefined) => {
+    return employees.find(emp => emp.id === id)?.name || 'N/A';
+  };
+
+  const openJobDetailsModal = (job: Job) => {
+    setSelectedJobForDetails(job);
+    setIsJobDetailsModalOpen(true);
+  };
+
+  const closeJobDetailsModal = () => {
+    setIsJobDetailsModalOpen(false);
+    setSelectedJobForDetails(null);
+  };
+
   return (
     <Card className="w-full mx-auto">
       <CardHeader className="flex flex-row justify-between items-center">
@@ -272,6 +290,15 @@ const AdminJobManagement = () => {
                       )}
                     </TableCell>
                     <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openJobDetailsModal(job)}
+                        className="mr-2"
+                        title="View Job Details"
+                      >
+                        <Eye size={18} />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -398,6 +425,68 @@ const AdminJobManagement = () => {
               </Select>
             </div>
           </form>
+        </Modal>
+
+        {/* Job Details Modal */}
+        <Modal
+          isOpen={isJobDetailsModalOpen}
+          onClose={closeJobDetailsModal}
+          title={`Job Details: ${selectedJobForDetails?.title || 'N/A'}`}
+          description={`Client: ${selectedJobForDetails?.client || 'N/A'}`}
+          footer={
+            <Button onClick={closeJobDetailsModal}>Close</Button>
+          }
+        >
+          {selectedJobForDetails && (
+            <div className="space-y-4 text-gray-700">
+              <p><strong>Job ID:</strong> {selectedJobForDetails._id}</p>
+              <p><strong>Title:</strong> {selectedJobForDetails.title}</p>
+              <p><strong>Client:</strong> {selectedJobForDetails.client}</p>
+              <p><strong>Due Date:</strong> {new Date(selectedJobForDetails.dueDate).toLocaleDateString()}</p>
+              <p><strong>Priority:</strong>
+                <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                  selectedJobForDetails.priority === 'High' ? 'bg-red-100 text-red-800' :
+                  selectedJobForDetails.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-green-100 text-green-800'
+                }`}>
+                  {selectedJobForDetails.priority}
+                </span>
+              </p>
+              <p><strong>Status:</strong>
+                <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                  selectedJobForDetails.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                  selectedJobForDetails.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                  selectedJobForDetails.status === 'Assigned' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-purple-100 text-purple-800'
+                }`}>
+                  {selectedJobForDetails.status}
+                </span>
+              </p>
+              <p><strong>Assigned To:</strong> {getEmployeeName(selectedJobForDetails.employeeId)}</p>
+              {selectedJobForDetails.orderId && (
+                <p>
+                  <strong>Linked Order ID:</strong> {selectedJobForDetails.orderId}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => openOrderDetailsModal(selectedJobForDetails.orderId!)}
+                    className="ml-2 h-auto px-2 py-1 text-xs"
+                  >
+                    <Eye size={14} className="mr-1" /> View Order
+                  </Button>
+                </p>
+              )}
+              {selectedJobForDetails.completionDate && (
+                <p><strong>Completion Date:</strong> {new Date(selectedJobForDetails.completionDate).toLocaleDateString()}</p>
+              )}
+              {selectedJobForDetails.feedback && (
+                <>
+                  <p><strong>Feedback:</strong></p>
+                  <p className="whitespace-pre-wrap border p-3 rounded-md bg-gray-50">{selectedJobForDetails.feedback}</p>
+                </>
+              )}
+            </div>
+          )}
         </Modal>
 
         {/* Order Details Modal (reused from AdminOrderManagement) */}
