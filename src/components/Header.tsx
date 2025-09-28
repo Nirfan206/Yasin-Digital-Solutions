@@ -3,15 +3,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, LayoutDashboard } from 'lucide-react';
+import { LogOut, LayoutDashboard, Printer } from 'lucide-react'; // Import Printer icon
 import { Button } from './ui/button';
 import NotificationBell from './NotificationBell';
-import { useTranslation } from 'react-i18next'; // Import useTranslation
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'; // Import Select components
+import { useTranslation } from 'react-i18next';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 const Header = () => {
   const { user, logout } = useAuth();
-  const { t, i18n } = useTranslation(); // Initialize useTranslation
+  const { t, i18n } = useTranslation();
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
@@ -31,8 +31,12 @@ const Header = () => {
     }
   };
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
-    <header className="bg-white shadow-sm py-4 px-6 flex justify-between items-center no-print"> {/* Added no-print class */}
+    <header className="bg-white shadow-sm py-4 px-6 flex justify-between items-center no-print">
       <div className="text-2xl font-bold text-blue-700">
         <Link to="/">Yasin Digital Solutions</Link>
       </div>
@@ -91,6 +95,16 @@ const Header = () => {
               </li>
             </>
           )}
+          <li>
+            <Button
+              variant="ghost"
+              onClick={handlePrint}
+              className="text-gray-700 hover:text-blue-700 font-medium flex items-center space-x-1"
+            >
+              <Printer size={18} />
+              <span>{t('print')}</span>
+            </Button>
+          </li>
           <li>
             <Select onValueChange={changeLanguage} defaultValue={i18n.language}>
               <SelectTrigger className="w-[120px]">
