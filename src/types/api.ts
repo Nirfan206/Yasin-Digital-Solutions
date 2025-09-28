@@ -78,3 +78,13 @@ export interface Notification {
   createdAt: string;
   link?: string; // Optional link to a related page
 }
+
+export interface ContactMessage {
+  _id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+}
