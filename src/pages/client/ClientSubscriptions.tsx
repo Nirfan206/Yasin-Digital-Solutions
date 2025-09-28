@@ -56,8 +56,8 @@ const ClientSubscriptions = () => {
                 {subscriptions.map((sub) => (
                   <TableRow key={sub._id}>
                     <TableCell className="font-medium">{sub.serviceName}</TableCell>
-                    <TableCell>{sub.startDate}</TableCell>
-                    <TableCell>{sub.nextRenewalDate}</TableCell>
+                    <TableCell>{new Date(sub.startDate).toLocaleDateString()}</TableCell>
+                    <TableCell>{new Date(sub.nextRenewalDate).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         sub.status === 'Active' ? 'bg-green-100 text-green-800' :
