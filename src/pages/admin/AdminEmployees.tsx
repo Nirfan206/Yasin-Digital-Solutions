@@ -11,6 +11,7 @@ import EmployeeTable from '../../components/admin/employees/EmployeeTable';
 import EmployeeFormModal from '../../components/admin/employees/EmployeeFormModal';
 import EmployeeDetailsModal from '../../components/admin/employees/EmployeeDetailsModal';
 import { Employee } from '../../types/api';
+import LoadingSpinner from '../../components/LoadingSpinner'; // Import LoadingSpinner
 
 const AdminEmployees = () => {
   const { token } = useAuth();
@@ -137,7 +138,9 @@ const AdminEmployees = () => {
       </CardHeader>
       <CardContent>
         {fetchingEmployees ? (
-          <p className="text-gray-600">Loading employees...</p>
+          <div className="flex justify-center items-center min-h-[100px]">
+            <LoadingSpinner size={30} />
+          </div>
         ) : employees.length === 0 ? (
           <p className="text-gray-600">No employees found.</p>
         ) : (

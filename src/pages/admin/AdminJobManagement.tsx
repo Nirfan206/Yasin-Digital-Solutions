@@ -15,6 +15,7 @@ import JobDetailsModal from '../../components/admin/jobs/JobDetailsModal';
 import OrderDetailsModal from '../../components/admin/orders/OrderDetailsModal';
 import JobFilters from '../../components/admin/jobs/JobFilters'; // New import
 import { Job, Employee, Order } from '../../types/api';
+import LoadingSpinner from '../../components/LoadingSpinner'; // Import LoadingSpinner
 
 const AdminJobManagement = () => {
   const { token } = useAuth();
@@ -226,7 +227,9 @@ const AdminJobManagement = () => {
         />
 
         {fetchingJobs ? (
-          <p className="text-gray-600">Loading jobs...</p>
+          <div className="flex justify-center items-center min-h-[100px]">
+            <LoadingSpinner size={30} />
+          </div>
         ) : filteredJobs.length === 0 ? (
           <p className="text-gray-600">No jobs found matching your criteria.</p>
         ) : (

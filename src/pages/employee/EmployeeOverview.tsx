@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { fetchEmployeeAllJobs } from '../../api/employee'; // Import the new API function
 import { showError } from '../../utils/toast';
 import { Job } from '../../types/api';
+import LoadingSpinner from '../../components/LoadingSpinner'; // Import LoadingSpinner
 
 const EmployeeOverview = () => {
   const { token } = useAuth();
@@ -45,7 +46,11 @@ const EmployeeOverview = () => {
   }, [token]);
 
   if (loading) {
-    return <div className="flex justify-center items-center min-h-[200px]">Loading employee overview...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <LoadingSpinner size={40} />
+      </div>
+    );
   }
 
   return (

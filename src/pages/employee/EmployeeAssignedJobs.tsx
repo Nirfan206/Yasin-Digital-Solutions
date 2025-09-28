@@ -7,6 +7,7 @@ import { fetchAssignedJobs, updateJobStatus } from '../../api/employee';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import AssignedJobsTable from '../../components/employee/jobs/AssignedJobsTable'; // Import the new component
 import { Job } from '../../types/api';
+import LoadingSpinner from '../../components/LoadingSpinner'; // Import LoadingSpinner
 
 const EmployeeAssignedJobs = () => {
   const { token } = useAuth();
@@ -64,7 +65,9 @@ const EmployeeAssignedJobs = () => {
       </CardHeader>
       <CardContent>
         {fetchingJobs ? (
-          <p className="text-gray-600">Loading assigned jobs...</p>
+          <div className="flex justify-center items-center min-h-[100px]">
+            <LoadingSpinner size={30} />
+          </div>
         ) : jobs.length === 0 ? (
           <p className="text-gray-600">You currently have no assigned jobs.</p>
         ) : (

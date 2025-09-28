@@ -4,6 +4,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../ui/table';
 import { Order } from '../../../types/api';
+import LoadingSpinner from '../../LoadingSpinner'; // Import LoadingSpinner
 
 interface ClientOrderTableProps {
   orders: Order[];
@@ -18,7 +19,9 @@ const ClientOrderTable = ({ orders, fetchingOrders }: ClientOrderTableProps) => 
       </CardHeader>
       <CardContent>
         {fetchingOrders ? (
-          <p className="text-gray-600">Loading orders...</p>
+          <div className="flex justify-center items-center min-h-[100px]">
+            <LoadingSpinner size={30} />
+          </div>
         ) : orders.length === 0 ? (
           <p className="text-gray-600">You have no orders yet.</p>
         ) : (

@@ -7,6 +7,7 @@ import { showError } from '../../utils/toast';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import CompletedJobsTable from '../../components/employee/jobs/CompletedJobsTable'; // Import the new component
 import { Job } from '../../types/api';
+import LoadingSpinner from '../../components/LoadingSpinner'; // Import LoadingSpinner
 
 const EmployeeCompletedJobs = () => {
   const { token } = useAuth();
@@ -38,7 +39,9 @@ const EmployeeCompletedJobs = () => {
       </CardHeader>
       <CardContent>
         {fetchingJobs ? (
-          <p className="text-gray-600">Loading completed jobs...</p>
+          <div className="flex justify-center items-center min-h-[100px]">
+            <LoadingSpinner size={30} />
+          </div>
         ) : completedJobs.length === 0 ? (
           <p className="text-gray-600">You have not completed any jobs yet.</p>
         ) : (

@@ -10,9 +10,9 @@ import ClientOrderTable from '../../components/client/orders/ClientOrderTable';
 
 const ClientOrders = () => {
   const { token } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // For form submission
   const [orders, setOrders] = useState<Order[]>([]);
-  const [fetchingOrders, setFetchingOrders] = useState(true);
+  const [fetchingOrders, setFetchingOrders] = useState(true); // For initial data fetch
 
   useEffect(() => {
     const getOrders = async () => {

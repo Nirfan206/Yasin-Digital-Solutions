@@ -12,6 +12,7 @@ import SubscriptionTable from '../../components/admin/subscriptions/Subscription
 import SubscriptionFormModal from '../../components/admin/subscriptions/SubscriptionFormModal';
 import SubscriptionDetailsModal from '../../components/admin/subscriptions/SubscriptionDetailsModal';
 import { Subscription, Client } from '../../types/api';
+import LoadingSpinner from '../../components/LoadingSpinner'; // Import LoadingSpinner
 
 const AdminSubscriptionManagement = () => {
   const { token } = useAuth();
@@ -168,7 +169,9 @@ const AdminSubscriptionManagement = () => {
       </CardHeader>
       <CardContent>
         {fetchingData ? (
-          <p className="text-gray-600">Loading subscriptions...</p>
+          <div className="flex justify-center items-center min-h-[100px]">
+            <LoadingSpinner size={30} />
+          </div>
         ) : subscriptions.length === 0 ? (
           <p className="text-gray-600">No subscriptions found.</p>
         ) : (

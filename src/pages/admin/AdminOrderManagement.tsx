@@ -12,6 +12,7 @@ import OrderTable from '../../components/admin/orders/OrderTable';
 import { Order, Job, Employee } from '../../types/api';
 import OrderDetailsModal from '../../components/admin/orders/OrderDetailsModal';
 import CreateJobFromOrderModal from '../../components/admin/orders/CreateJobFromOrderModal';
+import LoadingSpinner from '../../components/LoadingSpinner'; // Import LoadingSpinner
 
 const AdminOrderManagement = () => {
   const { token } = useAuth();
@@ -188,7 +189,9 @@ const AdminOrderManagement = () => {
         />
 
         {fetchingOrders ? (
-          <p className="text-gray-600">Loading orders...</p>
+          <div className="flex justify-center items-center min-h-[100px]">
+            <LoadingSpinner size={30} />
+          </div>
         ) : filteredOrders.length === 0 ? (
           <p className="text-gray-600">No orders found matching your criteria.</p>
         ) : (

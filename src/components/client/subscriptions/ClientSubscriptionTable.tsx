@@ -4,6 +4,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../ui/table';
 import { Subscription } from '../../../types/api';
+import LoadingSpinner from '../../LoadingSpinner'; // Import LoadingSpinner
 
 interface ClientSubscriptionTableProps {
   subscriptions: Subscription[];
@@ -18,7 +19,9 @@ const ClientSubscriptionTable = ({ subscriptions, fetchingSubscriptions }: Clien
       </CardHeader>
       <CardContent>
         {fetchingSubscriptions ? (
-          <p className="text-gray-600">Loading subscriptions...</p>
+          <div className="flex justify-center items-center min-h-[100px]">
+            <LoadingSpinner size={30} />
+          </div>
         ) : subscriptions.length === 0 ? (
           <p className="text-gray-600">You currently have no active subscriptions.</p>
         ) : (

@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Button } from '../../components/ui/button';
 import Modal from '../../components/Modal';
 import { ContactMessage } from '../../types/api';
+import LoadingSpinner from '../../components/LoadingSpinner'; // Import LoadingSpinner
 
 const AdminContactMessages = () => {
   const { token } = useAuth();
@@ -82,7 +83,9 @@ const AdminContactMessages = () => {
       </CardHeader>
       <CardContent>
         {fetchingMessages ? (
-          <p className="text-gray-600">Loading messages...</p>
+          <div className="flex justify-center items-center min-h-[100px]">
+            <LoadingSpinner size={30} />
+          </div>
         ) : messages.length === 0 ? (
           <p className="text-gray-600">No contact messages found.</p>
         ) : (

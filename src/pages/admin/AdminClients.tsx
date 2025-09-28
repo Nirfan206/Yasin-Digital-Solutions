@@ -11,6 +11,7 @@ import ClientTable from '../../components/admin/clients/ClientTable';
 import ClientFormModal from '../../components/admin/clients/ClientFormModal';
 import ClientDetailsModal from '../../components/admin/clients/ClientDetailsModal';
 import { Client } from '../../types/api';
+import LoadingSpinner from '../../components/LoadingSpinner'; // Import LoadingSpinner
 
 const AdminClients = () => {
   const { token } = useAuth();
@@ -137,7 +138,9 @@ const AdminClients = () => {
       </CardHeader>
       <CardContent>
         {fetchingClients ? (
-          <p className="text-gray-600">Loading clients...</p>
+          <div className="flex justify-center items-center min-h-[100px]">
+            <LoadingSpinner size={30} />
+          </div>
         ) : clients.length === 0 ? (
           <p className="text-gray-600">No clients found.</p>
         ) : (

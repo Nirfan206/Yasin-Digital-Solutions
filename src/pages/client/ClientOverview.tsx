@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { fetchClientOrders, fetchClientSubscriptions } from '../../api/client';
 import { showError } from '../../utils/toast';
 import { Order, Subscription } from '../../types/api';
+import LoadingSpinner from '../../components/LoadingSpinner'; // Import LoadingSpinner
 
 const ClientOverview = () => {
   const { token } = useAuth();
@@ -57,7 +58,11 @@ const ClientOverview = () => {
   }, [token]);
 
   if (loading) {
-    return <div className="flex justify-center items-center min-h-[200px]">Loading client overview...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <LoadingSpinner size={40} />
+      </div>
+    );
   }
 
   return (
