@@ -88,7 +88,7 @@ const EmployeeAssignedJobs = () => {
                     <TableCell className="font-medium">{job._id}</TableCell>
                     <TableCell>{job.title}</TableCell>
                     <TableCell>{job.client}</TableCell>
-                    <TableCell>{job.dueDate}</TableCell>
+                    <TableCell>{new Date(job.dueDate).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         job.priority === 'High' ? 'bg-red-100 text-red-800' :
