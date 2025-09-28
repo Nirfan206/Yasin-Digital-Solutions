@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 interface User {
   id: string;
   email: string;
-  role: string;
+  role: string; // Add role to the User interface
 }
 
 interface AuthContextType {
