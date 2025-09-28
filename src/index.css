@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global print styles */
+@media print {
+  header, footer, aside, .no-print {
+    display: none !important;
+  }
+  body {
+    background-color: #fff !important;
+    color: #000 !important; /* Ensure text is black for printing */
+  }
+  /* Ensure tables and content are visible */
+  .print-area {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  /* Adjust table styling for print */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    color: #000 !important; /* Ensure table text is black */
+  }
+  /* Hide actions/buttons in tables during print */
+  .table-actions {
+    display: none !important;
+  }
+}

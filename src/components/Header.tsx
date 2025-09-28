@@ -3,15 +3,22 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, LayoutDashboard } from 'lucide-react'; // Importing icons
-import { Button } from './ui/button'; // Import shadcn/ui Button
-import NotificationBell from './NotificationBell'; // Import NotificationBell
+import { LogOut, LayoutDashboard } from 'lucide-react';
+import { Button } from './ui/button';
+import NotificationBell from './NotificationBell';
+import { useTranslation } from 'react-i18next'; // Import useTranslation
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'; // Import Select components
 
 const Header = () => {
   const { user, logout } = useAuth();
+  const { t, i18n } = useTranslation(); // Initialize useTranslation
+
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+  };
 
   const getDashboardLink = () => {
-    if (!user) return '/'; // Should not happen if user is null, but as a fallback
+    if (!user) return '/';
     switch (user.role) {
       case 'client':
         return '/client/dashboard';
@@ -25,7 +32,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm py-4 px-6 flex justify-between items-center">
+    <header className="bg-white shadow-sm py-4 px-6 flex justify-between items-center no-print"> {/* Added no-print class */}
       <div className="text-2xl font-bold text-blue-700">
         <Link to="/">Yasin Digital Solutions</Link>
       </div>
@@ -33,17 +40,17 @@ const Header = () => {
         <ul className="flex space-x-6 items-center">
           <li>
             <Button asChild variant="ghost" className="text-gray-700 hover:text-blue-700 font-medium">
-              <Link to="/">Home</Link>
+              <Link to="/">{t('home')}</Link>
             </Button>
           </li>
           <li>
             <Button asChild variant="ghost" className="text-gray-700 hover:text-blue-700 font-medium">
-              <Link to="/services">Services</Link>
+              <Link to="/services">{t('services')}</Link>
             </Button>
           </li>
           <li>
             <Button asChild variant="ghost" className="text-gray-700 hover:text-blue-700 font-medium">
-              <Link to="/contact">Contact Us</Link> {/* New link */}
+              <Link to="/contact">{t('contact_us')}</Link>
             </Button>
           </li>
           {user ? (
@@ -52,21 +59,21 @@ const Header = () => {
                 <Button asChild variant="ghost" className="text-gray-700 hover:text-blue-700 font-medium flex items-center space-x-1">
                   <Link to={getDashboardLink()}>
                     <LayoutDashboard size={18} />
-                    <span>Dashboard</span>
+                    <span>{t('dashboard')}</span>
                   </Link>
                 </Button>
               </li>
               <li>
-                <NotificationBell /> {/* Integrate NotificationBell here */}
+                <NotificationBell />
               </li>
               <li>
                 <Button
-                  variant="ghost" // Use ghost variant to match previous link-like appearance
+                  variant="ghost"
                   onClick={logout}
                   className="text-gray-700 hover:text-blue-700 font-medium flex items-center space-x-1"
                 >
                   <LogOut size={18} />
-                  <span>Logout</span>
+                  <span>{t('logout')}</span>
                 </Button>
               </li>
             </>
@@ -74,16 +81,27 @@ const Header = () => {
             <>
               <li>
                 <Button asChild variant="ghost" className="text-gray-700 hover:text-blue-700 font-medium">
-                  <Link to="/register">Register</Link>
+                  <Link to="/register">{t('register')}</Link>
                 </Button>
               </li>
               <li>
                 <Button asChild variant="ghost" className="text-gray-700 hover:text-blue-700 font-medium">
-                  <Link to="/login">Login</Link>
+                  <Link to="/login">{t('login')}</Link>
                 </Button>
               </li>
             </>
           )}
+          <li>
+            <Select onValueChange={changeLanguage} defaultValue={i18n.language}>
+              <SelectTrigger className="w-[120px]">
+                <SelectValue placeholder={t('language')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">{t('english')}</SelectItem>
+                <SelectItem value="te">{t('telugu')}</SelectItem>
+              </SelectContent>
+            </Select>
+          </li>
         </ul>
       </nav>
     </header>

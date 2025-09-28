@@ -4,6 +4,9 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../ui/table';
 import { Order } from '../../../types/api';
+import { Button } from '../../ui/button'; // Import Button
+import { Printer } from 'lucide-react'; // Import Printer icon
+import { useTranslation } from 'react-i18next'; // Import useTranslation
 
 interface ClientOrderTableProps {
   orders: Order[];
@@ -11,10 +14,20 @@ interface ClientOrderTableProps {
 }
 
 const ClientOrderTable = ({ orders, fetchingOrders }: ClientOrderTableProps) => {
+  const { t } = useTranslation(); // Initialize useTranslation
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <Card className="w-full mx-auto">
-      <CardHeader>
-        <CardTitle className="text-2xl font-semibold text-gray-800">Your Orders</CardTitle>
+      <CardHeader className="flex flex-row justify-between items-center"> {/* Added flex for button */}
+        <CardTitle className="text-2xl font-semibold text-gray-800">{t('your_orders')}</CardTitle>
+        <Button onClick={handlePrint} className="flex items-center space-x-2 no-print"> {/* Added no-print class */}
+          <Printer size={18} />
+          <span>{t('print')}</span>
+        </Button>
       </CardHeader>
       <CardContent>
         {fetchingOrders ? (
@@ -22,7 +35,7 @@ const ClientOrderTable = ({ orders, fetchingOrders }: ClientOrderTableProps) => 
         ) : orders.length === 0 ? (
           <p className="text-gray-600">You have no orders yet.</p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto print-area"> {/* Added print-area class */}
             <Table>
               <TableHeader>
                 <TableRow>
