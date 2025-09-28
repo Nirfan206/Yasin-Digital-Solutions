@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye } from 'lucide-react'; // Added Eye icon
 import { useAuth } from '../../context/AuthContext';
 import { fetchAllJobs, createJob, updateJob, deleteJob } from '../../api/admin/jobs'; // Import job API functions from new file
 import { fetchAllEmployees } from '../../api/admin/employees'; // Import employee API functions from new file
+import { fetchAllOrders } from '../../api/admin/orders'; // Import fetchAllOrders for modal
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Button } from '../../components/ui/button';
@@ -13,12 +14,13 @@ import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import Modal from '../../components/Modal';
-import { Job, Employee } from '../../types/api';
+import { Job, Employee, Order } from '../../types/api'; // Added Order to imports
 
 const AdminJobManagement = () => {
   const { token } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]); // State to store all orders for lookup
   const [fetchingJobs, setFetchingJobs] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentJob, setCurrentJob] = useState<Job | null>(null);
@@ -30,6 +32,11 @@ const AdminJobManagement = () => {
   const [employeeId, setEmployeeId] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(false); // For modal actions
 
+  // State for "View Order Details" modal
+  const [isOrderDetailsModalOpen, setIsOrderDetailsModalOpen] = useState(false);
+  const [selectedOrderForDetails, setSelectedOrderForDetails] = useState<Order | null>(null);
+
+
   useEffect(() => {
     const fetchData = async () => {
       if (!token) {
@@ -37,9 +44,10 @@ const AdminJobManagement = () => {
         return;
       }
       setFetchingJobs(true);
-      const [jobsResponse, employeesResponse] = await Promise.all([
+      const [jobsResponse, employeesResponse, ordersResponse] = await Promise.all([ // Fetch orders too
         fetchAllJobs(token),
         fetchAllEmployees(token),
+        fetchAllOrders(token),
       ]);
 
       if (jobsResponse.data) {
@@ -52,6 +60,12 @@ const AdminJobManagement = () => {
         setEmployees(employeesResponse.data);
       } else if (employeesResponse.error) {
         showError(employeesResponse.error);
+      }
+
+      if (ordersResponse.data) { // Store fetched orders
+        setOrders(ordersResponse.data);
+      } else if (ordersResponse.error) {
+        showError(ordersResponse.error);
       }
       setFetchingJobs(false);
     };
@@ -163,6 +177,21 @@ const AdminJobManagement = () => {
     }
   };
 
+  const openOrderDetailsModal = (orderId: string) => {
+    const order = orders.find(o => o._id === orderId);
+    if (order) {
+      setSelectedOrderForDetails(order);
+      setIsOrderDetailsModalOpen(true);
+    } else {
+      showError('Order details not found.');
+    }
+  };
+
+  const closeOrderDetailsModal = () => {
+    setIsOrderDetailsModalOpen(false);
+    setSelectedOrderForDetails(null);
+  };
+
   return (
     <Card className="w-full mx-auto">
       <CardHeader className="flex flex-row justify-between items-center">
@@ -191,6 +220,7 @@ const AdminJobManagement = () => {
                   <TableHead>Priority</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Assigned To</TableHead>
+                  <TableHead>Linked Order</TableHead> {/* New TableHead */}
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -223,6 +253,23 @@ const AdminJobManagement = () => {
                       {job.employeeId
                         ? employees.find(emp => emp.id === job.employeeId)?.name || 'N/A'
                         : 'Unassigned'}
+                    </TableCell>
+                    <TableCell> {/* New TableCell for Linked Order */}
+                      {job.orderId ? (
+                        <div className="flex items-center space-x-1">
+                          <span>{job.orderId.slice(-6)}</span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openOrderDetailsModal(job.orderId!)}
+                            title="View Linked Order"
+                          >
+                            <Eye size={16} />
+                          </Button>
+                        </div>
+                      ) : (
+                        'N/A'
+                      )}
                     </TableCell>
                     <TableCell>
                       <Button
@@ -351,6 +398,39 @@ const AdminJobManagement = () => {
               </Select>
             </div>
           </form>
+        </Modal>
+
+        {/* Order Details Modal (reused from AdminOrderManagement) */}
+        <Modal
+          isOpen={isOrderDetailsModalOpen}
+          onClose={closeOrderDetailsModal}
+          title={`Order Details: #${selectedOrderForDetails?._id?.slice(-6)}`}
+          description={`Service: ${selectedOrderForDetails?.serviceType}`}
+          footer={
+            <Button onClick={closeOrderDetailsModal}>Close</Button>
+          }
+        >
+          {selectedOrderForDetails && (
+            <div className="space-y-4 text-gray-700">
+              <p><strong>Client:</strong> {selectedOrderForDetails.clientName || selectedOrderForDetails.clientEmail || 'N/A'}</p>
+              <p><strong>Client Email:</strong> {selectedOrderForDetails.clientEmail || 'N/A'}</p>
+              <p><strong>Service Type:</strong> {selectedOrderForDetails.serviceType}</p>
+              <p><strong>Status:</strong>
+                <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                  selectedOrderForDetails.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                  selectedOrderForDetails.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                  selectedOrderForDetails.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                  selectedOrderForDetails.status === 'Under Review' ? 'bg-purple-100 text-purple-800' :
+                  'bg-red-100 text-red-800'
+                }`}>
+                  {selectedOrderForDetails.status}
+                </span>
+              </p>
+              <p><strong>Order Date:</strong> {new Date(selectedOrderForDetails.orderDate).toLocaleString()}</p>
+              <p><strong>Requirements:</strong></p>
+              <p className="whitespace-pre-wrap border p-3 rounded-md bg-gray-50">{selectedOrderForDetails.requirements}</p>
+            </div>
+          )}
         </Modal>
       </CardContent>
     </Card>
