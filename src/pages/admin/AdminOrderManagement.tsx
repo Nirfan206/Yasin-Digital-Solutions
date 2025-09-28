@@ -3,19 +3,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
 import { useAuth } from '../../context/AuthContext';
-import { fetchAllOrders, updateOrderStatus } from '../../api/admin'; // Import API functions
+import { fetchAllOrders, updateOrderStatus } from '../../api/admin/orders'; // Import API functions from new file
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'; // Import shadcn/ui Select
-import { Input } from '../../components/ui/input'; // Import Input for search
-import { Order } from '../../types/api'; // Import Order interface
-import { Loader2 } from 'lucide-react'; // Import Loader2 icon for loading state
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { Input } from '../../components/ui/input';
+import { Order } from '../../types/api';
+import { Loader2 } from 'lucide-react';
 
 const AdminOrderManagement = () => {
   const { token } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [fetchingOrders, setFetchingOrders] = useState(true);
-  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null); // To track which order is being updated
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<Order['status'] | 'all'>('all');
 

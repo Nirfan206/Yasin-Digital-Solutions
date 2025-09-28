@@ -4,15 +4,15 @@ import React, { useState, useEffect } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { fetchAllClients, createClient, updateClient, deleteClient } from '../../api/admin'; // Import API functions
+import { fetchAllClients, createClient, updateClient, deleteClient } from '../../api/admin/clients'; // Import API functions from new file
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Button } from '../../components/ui/button';
 import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'; // Import shadcn/ui Select
-import Modal from '../../components/Modal'; // Import the new Modal component
-import { Client } from '../../types/api'; // Import Client interface
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import Modal from '../../components/Modal';
+import { Client } from '../../types/api';
 
 const AdminClients = () => {
   const { token } = useAuth();

@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { fetchAllSubscriptions, createSubscription, updateSubscription, deleteSubscription, fetchAllClients } from '../../api/admin';
+import { fetchAllSubscriptions, createSubscription, updateSubscription, deleteSubscription } from '../../api/admin/subscriptions'; // Import subscription API functions from new file
+import { fetchAllClients } from '../../api/admin/clients'; // Import client API functions from new file
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Button } from '../../components/ui/button';

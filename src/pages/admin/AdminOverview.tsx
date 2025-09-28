@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Users, Building2, ListOrdered, Briefcase, CalendarCheck, Hourglass, SearchCheck, CheckCircle2, XCircle } from 'lucide-react'; // Import new icons
+import { Users, Building2, ListOrdered, Briefcase, CalendarCheck, Hourglass, SearchCheck, CheckCircle2, XCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { fetchAdminOverviewData } from '../../api/admin';
+import { fetchAdminOverviewData } from '../../api/admin/overview'; // Import API function from new file
 import { showError } from '../../utils/toast';
-import { Order, Job } from '../../types/api'; // Import Order and Job types for status keys
+import { Order, Job } from '../../types/api';
 
 const AdminOverview = () => {
   const { token } = useAuth();
@@ -66,7 +66,7 @@ const AdminOverview = () => {
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"> {/* Adjusted grid for more cards */}
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Clients</CardTitle>

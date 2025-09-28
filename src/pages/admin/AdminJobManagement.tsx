@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { fetchAllJobs, createJob, updateJob, deleteJob, fetchAllEmployees } from '../../api/admin'; // Import API functions
+import { fetchAllJobs, createJob, updateJob, deleteJob } from '../../api/admin/jobs'; // Import job API functions from new file
+import { fetchAllEmployees } from '../../api/admin/employees'; // Import employee API functions from new file
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Button } from '../../components/ui/button';
