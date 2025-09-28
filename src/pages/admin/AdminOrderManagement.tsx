@@ -104,7 +104,7 @@ const AdminOrderManagement = () => {
                         {order.status}
                       </span>
                     </TableCell>
-                    <TableCell>{order.orderDate}</TableCell>
+                    <TableCell>{new Date(order.orderDate).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <Select
                         value={order.status}
