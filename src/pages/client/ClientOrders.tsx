@@ -9,6 +9,7 @@ import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Textarea } from '../../components/ui/textarea'; // Using shadcn/ui Textarea
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'; // Import shadcn/ui Select
 
 interface Order {
   _id: string; // Changed to _id to match typical MongoDB IDs
@@ -83,18 +84,16 @@ const ClientOrders = () => {
           <form onSubmit={handleOrderSubmit} className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="serviceType">Service Type</Label>
-              <select
-                id="serviceType"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={serviceType}
-                onChange={(e) => setServiceType(e.target.value)}
-                required
-              >
-                <option value="">Select a service</option>
-                <option value="Website Building">Website Building</option>
-                <option value="App Development">App Development</option>
-                <option value="Digital Marketing">Digital Marketing</option>
-              </select>
+              <Select value={serviceType} onValueChange={setServiceType} required>
+                <SelectTrigger id="serviceType">
+                  <SelectValue placeholder="Select a service" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Website Building">Website Building</SelectItem>
+                  <SelectItem value="App Development">App Development</SelectItem>
+                  <SelectItem value="Digital Marketing">Digital Marketing</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="requirements">Project Requirements</Label>

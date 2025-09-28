@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { fetchAssignedJobs, updateJobStatus } from '../../api/employee'; // Import API functions
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'; // Import shadcn/ui Select
 
 interface Job {
   _id: string;
@@ -116,17 +117,21 @@ const EmployeeAssignedJobs = () => {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <select
+                      <Select
                         value={job.status}
-                        onChange={(e) => handleStatusChange(job._id, e.target.value as Job['status'])}
-                        className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        onValueChange={(value: Job['status']) => handleStatusChange(job._id, value)}
                         disabled={updatingStatus === job._id}
                       >
-                        <option value="Assigned">Assigned</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Under Review">Under Review</option>
-                        <option value="Completed">Completed</option>
-                      </select>
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Update Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Assigned">Assigned</SelectItem>
+                          <SelectItem value="In Progress">In Progress</SelectItem>
+                          <SelectItem value="Under Review">Under Review</SelectItem>
+                          <SelectItem value="Completed">Completed</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                   </TableRow>
                 ))}
