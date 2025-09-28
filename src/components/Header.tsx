@@ -4,6 +4,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LogOut, LayoutDashboard } from 'lucide-react'; // Importing icons
+import { Button } from './ui/button'; // Import shadcn/ui Button
 
 const Header = () => {
   const { user, logout } = useAuth();
@@ -44,13 +45,14 @@ const Header = () => {
                 </Link>
               </li>
               <li>
-                <button
+                <Button
+                  variant="ghost" // Use ghost variant to match previous link-like appearance
                   onClick={logout}
                   className="text-gray-700 hover:text-blue-700 font-medium flex items-center space-x-1"
                 >
                   <LogOut size={18} />
                   <span>Logout</span>
-                </button>
+                </Button>
               </li>
             </>
           ) : (

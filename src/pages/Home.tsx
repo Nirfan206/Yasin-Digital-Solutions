@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Monitor, Smartphone, Megaphone } from 'lucide-react'; // Importing Lucide icons
+import { Button } from '../components/ui/button'; // Import shadcn/ui Button
 
 const Home = () => {
   return (
@@ -11,9 +12,9 @@ const Home = () => {
         <div className="container mx-auto px-6">
           <h1 className="text-5xl font-extrabold mb-4">Driving Your Business Forward with Digital Excellence</h1>
           <p className="text-xl mb-8">Websites, Apps, and Marketing Tailored for Growth.</p>
-          <button className="bg-white text-blue-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-full text-lg transition-colors duration-300">
+          <Button className="bg-white text-blue-700 hover:bg-gray-100 font-bold py-3 px-8 rounded-full text-lg transition-colors duration-300">
             Get a Quote
-          </button>
+          </Button>
         </div>
       </section>
 
