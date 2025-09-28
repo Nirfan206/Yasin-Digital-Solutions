@@ -1,5 +1,7 @@
 const Job = require('../../models/Job');
+const User = require('../../models/User'); // To fetch employee's email
 const { createNotification } = require('../notificationController'); // Import notification helper
+const sendEmail = require('../../utils/sendEmail'); // Import sendEmail utility
 
 // @desc    Get all jobs
 // @route   GET /api/admin/jobs
@@ -34,11 +36,34 @@ const createJob = async (req, res) => {
       employeeId: employeeId || undefined, // Can be unassigned
     });
 
-    // Send notification to assigned employee if applicable
+    // Send notification and email to assigned employee if applicable
     if (job.employeeId) {
-      const message = `You have been assigned a new job: "${job.title}" (ID: ${job._id.toString().slice(-6)}).`;
-      const link = `/employee/dashboard/assigned-jobs`; // Link to employee's assigned jobs page
-      await createNotification(job.employeeId, message, link, 'job_assigned');
+      const employeeUser = await User.findById(job.employeeId);
+      if (employeeUser) {
+        const message = `You have been assigned a new job: "${job.title}" (ID: ${job._id.toString().slice(-6)}).`;
+        const link = `/employee/dashboard/assigned-jobs`; // Link to employee's assigned jobs page
+        await createNotification(job.employeeId, message, link, 'job_assigned');
+
+        const emailMessage = `
+          <h1>New Job Assignment</h1>
+          <p>Dear ${employeeUser.name || employeeUser.email},</p>
+          <p>You have been assigned a new job:</p>
+          <ul>
+            <li><strong>Title:</strong> ${job.title}</li>
+            <li><strong>Client:</strong> ${job.client}</li>
+            <li><strong>Due Date:</strong> ${new Date(job.dueDate).toLocaleDateString()}</li>
+            <li><strong>Priority:</strong> ${job.priority}</li>
+          </ul>
+          <p>Please check your dashboard for more details.</p>
+          <p>Best regards,</p>
+          <p>The Yasin Digital Solutions Team</p>
+        `;
+        await sendEmail({
+          email: employeeUser.email,
+          subject: `New Job Assigned: ${job.title}`,
+          message: emailMessage,
+        });
+      }
     }
 
     res.status(201).json(job);
@@ -79,23 +104,79 @@ const updateJob = async (req, res) => {
 
     const updatedJob = await job.save();
 
-    // Send notification if employee assignment changed
+    // Handle notifications and emails for employee assignment changes
     const newEmployeeId = updatedJob.employeeId ? updatedJob.employeeId.toString() : undefined;
     if (newEmployeeId && newEmployeeId !== oldEmployeeId) {
-      const message = `You have been assigned job: "${updatedJob.title}" (ID: ${updatedJob._id.toString().slice(-6)}).`;
-      const link = `/employee/dashboard/assigned-jobs`;
-      await createNotification(newEmployeeId, message, link, 'job_assigned');
+      const employeeUser = await User.findById(newEmployeeId);
+      if (employeeUser) {
+        const message = `You have been assigned job: "${updatedJob.title}" (ID: ${updatedJob._id.toString().slice(-6)}).`;
+        const link = `/employee/dashboard/assigned-jobs`;
+        await createNotification(newEmployeeId, message, link, 'job_assigned');
+
+        const emailMessage = `
+          <h1>Job Assignment Update</h1>
+          <p>Dear ${employeeUser.name || employeeUser.email},</p>
+          <p>You have been assigned a new job:</p>
+          <ul>
+            <li><strong>Title:</strong> ${updatedJob.title}</li>
+            <li><strong>Client:</strong> ${updatedJob.client}</li>
+            <li><strong>Due Date:</strong> ${new Date(updatedJob.dueDate).toLocaleDateString()}</li>
+            <li><strong>Priority:</strong> ${updatedJob.priority}</li>
+          </ul>
+          <p>Please check your dashboard for more details.</p>
+          <p>Best regards,</p>
+          <p>The Yasin Digital Solutions Team</p>
+        `;
+        await sendEmail({
+          email: employeeUser.email,
+          subject: `Job Re-assigned: ${updatedJob.title}`,
+          message: emailMessage,
+        });
+      }
     } else if (!newEmployeeId && oldEmployeeId) {
       // If job was unassigned from an employee
-      const message = `Job "${updatedJob.title}" (ID: ${updatedJob._id.toString().slice(-6)}) has been unassigned from you.`;
-      await createNotification(oldEmployeeId, message, undefined, 'job_unassigned');
+      const oldEmployeeUser = await User.findById(oldEmployeeId);
+      if (oldEmployeeUser) {
+        const message = `Job "${updatedJob.title}" (ID: ${updatedJob._id.toString().slice(-6)}) has been unassigned from you.`;
+        await createNotification(oldEmployeeId, message, undefined, 'job_unassigned');
+
+        const emailMessage = `
+          <h1>Job Unassigned</h1>
+          <p>Dear ${oldEmployeeUser.name || oldEmployeeUser.email},</p>
+          <p>The job "${updatedJob.title}" (ID: ${updatedJob._id.toString().slice(-6)}) has been unassigned from you.</p>
+          <p>Best regards,</p>
+          <p>The Yasin Digital Solutions Team</p>
+        `;
+        await sendEmail({
+          email: oldEmployeeUser.email,
+          subject: `Job Unassigned: ${updatedJob.title}`,
+          message: emailMessage,
+        });
+      }
     }
 
-    // Send notification if job status changed for the assigned employee
+    // Send notification and email if job status changed for the assigned employee
     if (updatedJob.employeeId && oldStatus !== updatedJob.status) {
-      const message = `The status of job "${updatedJob.title}" (ID: ${updatedJob._id.toString().slice(-6)}) is now "${updatedJob.status}".`;
-      const link = `/employee/dashboard/assigned-jobs`;
-      await createNotification(updatedJob.employeeId, message, link, 'job_status_update');
+      const employeeUser = await User.findById(updatedJob.employeeId);
+      if (employeeUser) {
+        const message = `The status of job "${updatedJob.title}" (ID: ${updatedJob._id.toString().slice(-6)}) is now "${updatedJob.status}".`;
+        const link = `/employee/dashboard/assigned-jobs`;
+        await createNotification(updatedJob.employeeId, message, link, 'job_status_update');
+
+        const emailMessage = `
+          <h1>Job Status Update</h1>
+          <p>Dear ${employeeUser.name || employeeUser.email},</p>
+          <p>The status of job "${updatedJob.title}" (ID: ${updatedJob._id.toString().slice(-6)}) has been updated to <strong>${updatedJob.status}</strong>.</p>
+          <p>Please check your dashboard for more details.</p>
+          <p>Best regards,</p>
+          <p>The Yasin Digital Solutions Team</p>
+        `;
+        await sendEmail({
+          email: employeeUser.email,
+          subject: `Job Status Update: ${updatedJob.title}`,
+          message: emailMessage,
+        });
+      }
     }
 
     res.status(200).json(updatedJob);
@@ -117,10 +198,26 @@ const deleteJob = async (req, res) => {
       return res.status(404).json({ error: 'Job not found' });
     }
 
-    // Optionally, send a notification to the assigned employee if the job is deleted
+    // Optionally, send a notification and email to the assigned employee if the job is deleted
     if (job.employeeId) {
-      const message = `Job "${job.title}" (ID: ${job._id.toString().slice(-6)}) has been deleted.`;
-      await createNotification(job.employeeId, message, undefined, 'job_deleted');
+      const employeeUser = await User.findById(job.employeeId);
+      if (employeeUser) {
+        const message = `Job "${job.title}" (ID: ${job._id.toString().slice(-6)}) has been deleted.`;
+        await createNotification(job.employeeId, message, undefined, 'job_deleted');
+
+        const emailMessage = `
+          <h1>Job Deleted</h1>
+          <p>Dear ${employeeUser.name || employeeUser.email},</p>
+          <p>The job "${job.title}" (ID: ${job._id.toString().slice(-6)}) has been deleted by the administrator.</p>
+          <p>Best regards,</p>
+          <p>The Yasin Digital Solutions Team</p>
+        `;
+        await sendEmail({
+          email: employeeUser.email,
+          subject: `Job Deleted: ${job.title}`,
+          message: emailMessage,
+        });
+      }
     }
 
     await job.deleteOne();

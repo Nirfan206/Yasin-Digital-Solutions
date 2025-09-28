@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const Client = require('../models/Client'); // For creating client profile on registration
+const sendEmail = require('../utils/sendEmail'); // Import sendEmail utility
 
 // @desc    Register new user
 // @route   POST /api/auth/register
@@ -38,6 +39,21 @@ const registerUser = async (req, res) => {
           registeredDate: user.createdAt,
         });
       }
+
+      // Send welcome email
+      const welcomeMessage = `
+        <h1>Welcome to Yasin Digital Solutions!</h1>
+        <p>Hi ${user.name || user.email},</p>
+        <p>Thank you for registering with us. We are excited to have you on board.</p>
+        <p>You can now log in to your dashboard and start exploring our services.</p>
+        <p>Best regards,</p>
+        <p>The Yasin Digital Solutions Team</p>
+      `;
+      await sendEmail({
+        email: user.email,
+        subject: 'Welcome to Yasin Digital Solutions!',
+        message: welcomeMessage,
+      });
 
       res.status(201).json({
         message: 'User registered successfully. Please log in.',

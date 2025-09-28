@@ -1,5 +1,7 @@
 const Order = require('../../models/Order');
+const User = require('../../models/User'); // To fetch client's email
 const { createNotification } = require('../notificationController'); // Import notification helper
+const sendEmail = require('../../utils/sendEmail'); // Import sendEmail utility
 
 // @desc    Get all orders
 // @route   GET /api/admin/orders
@@ -37,9 +39,27 @@ const updateOrderStatus = async (req, res) => {
 
     // Send notification to client if status changed
     if (oldStatus !== updatedOrder.status) {
-      const message = `Your order #${updatedOrder._id.toString().slice(-6)} is now "${updatedOrder.status}".`;
-      const link = `/client/dashboard/orders`; // Link to client's orders page
-      await createNotification(updatedOrder.clientId, message, link, 'order_update');
+      const clientUser = await User.findById(updatedOrder.clientId);
+      if (clientUser) {
+        const message = `Your order #${updatedOrder._id.toString().slice(-6)} is now "${updatedOrder.status}".`;
+        const link = `/client/dashboard/orders`; // Link to client's orders page
+        await createNotification(updatedOrder.clientId, message, link, 'order_update');
+
+        // Send email to client
+        const emailMessage = `
+          <h1>Order Status Update</h1>
+          <p>Dear ${clientUser.name || clientUser.email},</p>
+          <p>The status of your order for "${updatedOrder.serviceType}" (Order ID: ${updatedOrder._id.toString().slice(-6)}) has been updated to <strong>${updatedOrder.status}</strong>.</p>
+          <p>You can view your order details in your dashboard.</p>
+          <p>Best regards,</p>
+          <p>The Yasin Digital Solutions Team</p>
+        `;
+        await sendEmail({
+          email: clientUser.email,
+          subject: `Order Status Update: Order #${updatedOrder._id.toString().slice(-6)}`,
+          message: emailMessage,
+        });
+      }
     }
 
     res.status(200).json(updatedOrder);
