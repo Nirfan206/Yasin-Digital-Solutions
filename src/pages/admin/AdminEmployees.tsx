@@ -171,7 +171,7 @@ const AdminEmployees = () => {
                         {employee.status}
                       </span>
                     </TableCell>
-                    <TableCell>{employee.hiredDate}</TableCell>
+                    <TableCell>{new Date(employee.hiredDate).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <Button
                         variant="ghost"

@@ -166,7 +166,7 @@ const AdminClients = () => {
                         {client.status}
                       </span>
                     </TableCell>
-                    <TableCell>{client.registeredDate}</TableCell>
+                    <TableCell>{new Date(client.registeredDate).toLocaleDateString()}</TableCell>
                     <TableCell>
                       <Button
                         variant="ghost"
