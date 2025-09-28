@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
 import { Plus, Edit, Trash2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { fetchAllEmployees, createEmployee, updateEmployee, deleteEmployee } from '../../api/admin'; // Import API functions
 
 interface Employee {
   id: string;
@@ -14,19 +16,34 @@ interface Employee {
 }
 
 const AdminEmployees = () => {
-  const [employees, setEmployees] = useState<Employee[]>([
-    // Mock data for demonstration
-    { id: 'EMP001', name: 'John Doe', email: 'john.doe@example.com', role: 'employee', status: 'Active', hiredDate: '2022-05-01' },
-    { id: 'EMP002', name: 'Jane Smith', email: 'jane.smith@example.com', role: 'employee', status: 'Active', hiredDate: '2022-08-15' },
-    { id: 'EMP003', name: 'Peter Jones', email: 'peter.jones@example.com', role: 'manager', status: 'Inactive', hiredDate: '2021-11-20' },
-  ]);
+  const { token } = useAuth();
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [fetchingEmployees, setFetchingEmployees] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('employee');
   const [status, setStatus] = useState<'Active' | 'Inactive'>('Active');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // For modal actions
+
+  useEffect(() => {
+    const getEmployees = async () => {
+      if (!token) {
+        setFetchingEmployees(false);
+        return;
+      }
+      setFetchingEmployees(true);
+      const { data, error } = await fetchAllEmployees(token);
+      if (data) {
+        setEmployees(data);
+      } else if (error) {
+        showError(error);
+      }
+      setFetchingEmployees(false);
+    };
+    getEmployees();
+  }, [token]);
 
   const openModal = (employee?: Employee) => {
     if (employee) {
@@ -52,30 +69,34 @@ const AdminEmployees = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!token) {
+      showError('You must be logged in to manage employees.');
+      return;
+    }
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-
       if (currentEmployee) {
         // Update employee
-        setEmployees(prevEmployees =>
-          prevEmployees.map(employee =>
-            employee.id === currentEmployee.id ? { ...employee, name, email, role, status } : employee
-          )
-        );
-        showSuccess('Employee updated successfully!');
+        const { data, error } = await updateEmployee(token, currentEmployee.id, name, email, role, status);
+        if (data) {
+          setEmployees(prevEmployees =>
+            prevEmployees.map(employee =>
+              employee.id === currentEmployee.id ? { ...employee, name: data.name, email: data.email, role: data.role, status: data.status } : employee
+            )
+          );
+          showSuccess('Employee updated successfully!');
+        } else if (error) {
+          showError(error);
+        }
       } else {
         // Create new employee
-        const newEmployee: Employee = {
-          id: `EMP${String(employees.length + 1).padStart(3, '0')}`,
-          name,
-          email,
-          role,
-          status,
-          hiredDate: new Date().toISOString().split('T')[0],
-        };
-        setEmployees(prevEmployees => [...prevEmployees, newEmployee]);
-        showSuccess('Employee created successfully!');
+        const { data, error } = await createEmployee(token, name, email, role, status);
+        if (data) {
+          setEmployees(prevEmployees => [...prevEmployees, data]);
+          showSuccess('Employee created successfully!');
+        } else if (error) {
+          showError(error);
+        }
       }
       closeModal();
     } catch (error) {
@@ -87,12 +108,20 @@ const AdminEmployees = () => {
 
   const handleDelete = async (employeeId: string) => {
     if (!window.confirm('Are you sure you want to delete this employee?')) return;
+    if (!token) {
+      showError('You must be logged in to delete employees.');
+      return;
+    }
 
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      setEmployees(prevEmployees => prevEmployees.filter(employee => employee.id !== employeeId));
-      showSuccess('Employee deleted successfully!');
+      const { message, error } = await deleteEmployee(token, employeeId);
+      if (message) {
+        setEmployees(prevEmployees => prevEmployees.filter(employee => employee.id !== employeeId));
+        showSuccess('Employee deleted successfully!');
+      } else if (error) {
+        showError(error);
+      }
     } catch (error) {
       showError('Failed to delete employee.');
     } finally {
@@ -113,7 +142,9 @@ const AdminEmployees = () => {
         </button>
       </div>
 
-      {employees.length === 0 ? (
+      {fetchingEmployees ? (
+        <p className="text-gray-600">Loading employees...</p>
+      ) : employees.length === 0 ? (
         <p className="text-gray-600">No employees found.</p>
       ) : (
         <div className="overflow-x-auto">

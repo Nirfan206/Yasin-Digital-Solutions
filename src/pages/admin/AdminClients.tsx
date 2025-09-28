@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
 import { Plus, Edit, Trash2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { fetchAllClients, createClient, updateClient, deleteClient } from '../../api/admin'; // Import API functions
 
 interface Client {
   id: string;
@@ -13,18 +15,33 @@ interface Client {
 }
 
 const AdminClients = () => {
-  const [clients, setClients] = useState<Client[]>([
-    // Mock data for demonstration
-    { id: 'CL001', name: 'Alice Smith', email: 'alice@example.com', status: 'Active', registeredDate: '2023-01-01' },
-    { id: 'CL002', name: 'Bob Johnson', email: 'bob@example.com', status: 'Active', registeredDate: '2023-02-10' },
-    { id: 'CL003', name: 'Charlie Brown', email: 'charlie@example.com', status: 'Inactive', registeredDate: '2023-03-15' },
-  ]);
+  const { token } = useAuth();
+  const [clients, setClients] = useState<Client[]>([]);
+  const [fetchingClients, setFetchingClients] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentClient, setCurrentClient] = useState<Client | null>(null);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'Active' | 'Inactive'>('Active');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false); // For modal actions
+
+  useEffect(() => {
+    const getClients = async () => {
+      if (!token) {
+        setFetchingClients(false);
+        return;
+      }
+      setFetchingClients(true);
+      const { data, error } = await fetchAllClients(token);
+      if (data) {
+        setClients(data);
+      } else if (error) {
+        showError(error);
+      }
+      setFetchingClients(false);
+    };
+    getClients();
+  }, [token]);
 
   const openModal = (client?: Client) => {
     if (client) {
@@ -48,29 +65,34 @@ const AdminClients = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!token) {
+      showError('You must be logged in to manage clients.');
+      return;
+    }
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-
       if (currentClient) {
         // Update client
-        setClients(prevClients =>
-          prevClients.map(client =>
-            client.id === currentClient.id ? { ...client, name, email, status } : client
-          )
-        );
-        showSuccess('Client updated successfully!');
+        const { data, error } = await updateClient(token, currentClient.id, name, email, status);
+        if (data) {
+          setClients(prevClients =>
+            prevClients.map(client =>
+              client.id === currentClient.id ? { ...client, name: data.name, email: data.email, status: data.status } : client
+            )
+          );
+          showSuccess('Client updated successfully!');
+        } else if (error) {
+          showError(error);
+        }
       } else {
         // Create new client
-        const newClient: Client = {
-          id: `CL${String(clients.length + 1).padStart(3, '0')}`,
-          name,
-          email,
-          status,
-          registeredDate: new Date().toISOString().split('T')[0],
-        };
-        setClients(prevClients => [...prevClients, newClient]);
-        showSuccess('Client created successfully!');
+        const { data, error } = await createClient(token, name, email, status);
+        if (data) {
+          setClients(prevClients => [...prevClients, data]);
+          showSuccess('Client created successfully!');
+        } else if (error) {
+          showError(error);
+        }
       }
       closeModal();
     } catch (error) {
@@ -82,12 +104,20 @@ const AdminClients = () => {
 
   const handleDelete = async (clientId: string) => {
     if (!window.confirm('Are you sure you want to delete this client?')) return;
+    if (!token) {
+      showError('You must be logged in to delete clients.');
+      return;
+    }
 
     setLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      setClients(prevClients => prevClients.filter(client => client.id !== clientId));
-      showSuccess('Client deleted successfully!');
+      const { message, error } = await deleteClient(token, clientId);
+      if (message) {
+        setClients(prevClients => prevClients.filter(client => client.id !== clientId));
+        showSuccess('Client deleted successfully!');
+      } else if (error) {
+        showError(error);
+      }
     } catch (error) {
       showError('Failed to delete client.');
     } finally {
@@ -108,7 +138,9 @@ const AdminClients = () => {
         </button>
       </div>
 
-      {clients.length === 0 ? (
+      {fetchingClients ? (
+        <p className="text-gray-600">Loading clients...</p>
+      ) : clients.length === 0 ? (
         <p className="text-gray-600">No clients found.</p>
       ) : (
         <div className="overflow-x-auto">

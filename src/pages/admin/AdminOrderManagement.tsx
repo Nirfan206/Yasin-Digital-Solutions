@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { showSuccess, showError } from '../../utils/toast';
+import { useAuth } from '../../context/AuthContext';
+import { fetchAllOrders, updateOrderStatus } from '../../api/admin'; // Import API functions
 
 interface Order {
-  id: string;
+  _id: string;
   clientName: string;
   clientEmail: string;
   serviceType: string;
@@ -14,33 +16,60 @@ interface Order {
 }
 
 const AdminOrderManagement = () => {
-  const [orders, setOrders] = useState<Order[]>([
-    // Mock data for demonstration
-    { id: 'ORD001', clientName: 'Alice Smith', clientEmail: 'alice@example.com', serviceType: 'Website Building', requirements: 'E-commerce site for clothing brand.', status: 'In Progress', orderDate: '2023-01-15' },
-    { id: 'ORD002', clientName: 'Bob Johnson', clientEmail: 'bob@example.com', serviceType: 'Digital Marketing', requirements: 'SEO campaign for local business.', status: 'Completed', orderDate: '2023-02-01' },
-    { id: 'ORD003', clientName: 'Charlie Brown', clientEmail: 'charlie@example.com', serviceType: 'App Development', requirements: 'Mobile app for fitness tracking.', status: 'Pending', orderDate: '2023-03-10' },
-  ]);
+  const { token } = useAuth();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [fetchingOrders, setFetchingOrders] = useState(true);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null); // To track which order is being updated
+
+  useEffect(() => {
+    const getOrders = async () => {
+      if (!token) {
+        setFetchingOrders(false);
+        return;
+      }
+      setFetchingOrders(true);
+      const { data, error } = await fetchAllOrders(token);
+      if (data) {
+        setOrders(data);
+      } else if (error) {
+        showError(error);
+      }
+      setFetchingOrders(false);
+    };
+    getOrders();
+  }, [token]);
 
   const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
-    // In a real MERN app, you'd send a PUT request to your backend to update the order status
-    // For now, we'll simulate success and update mock data
+    if (!token) {
+      showError('You must be logged in to update order status.');
+      return;
+    }
+    setUpdatingStatus(orderId);
     try {
-      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
-      setOrders(prevOrders =>
-        prevOrders.map(order =>
-          order.id === orderId ? { ...order, status: newStatus } : order
-        )
-      );
-      showSuccess(`Order ${orderId} status updated to ${newStatus}.`);
+      const { data: updatedOrder, error } = await updateOrderStatus(token, orderId, newStatus);
+      if (updatedOrder) {
+        setOrders(prevOrders =>
+          prevOrders.map(order =>
+            order._id === orderId ? { ...order, status: updatedOrder.status } : order
+          )
+        );
+        showSuccess(`Order ${orderId} status updated to ${newStatus}.`);
+      } else if (error) {
+        showError(error);
+      }
     } catch (error) {
       showError('Failed to update order status.');
+    } finally {
+      setUpdatingStatus(null);
     }
   };
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-semibold text-gray-800 mb-4">Order Management</h2>
-      {orders.length === 0 ? (
+      {fetchingOrders ? (
+        <p className="text-gray-600">Loading orders...</p>
+      ) : orders.length === 0 ? (
         <p className="text-gray-600">No orders found.</p>
       ) : (
         <div className="overflow-x-auto">
@@ -58,8 +87,8 @@ const AdminOrderManagement = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {orders.map((order) => (
-                <tr key={order.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{order.id}</td>
+                <tr key={order._id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{order._id}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.clientName} ({order.clientEmail})</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{order.serviceType}</td>
                   <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{order.requirements}</td>
@@ -77,11 +106,13 @@ const AdminOrderManagement = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <select
                       value={order.status}
-                      onChange={(e) => handleStatusChange(order.id, e.target.value as Order['status'])}
+                      onChange={(e) => handleStatusChange(order._id, e.target.value as Order['status'])}
                       className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      disabled={updatingStatus === order._id}
                     >
                       <option value="Pending">Pending</option>
                       <option value="In Progress">In Progress</option>
+                      <option value="Under Review">Under Review</option>
                       <option value="Completed">Completed</option>
                       <option value="Cancelled">Cancelled</option>
                     </select>

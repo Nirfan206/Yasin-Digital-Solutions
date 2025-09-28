@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { showError, showSuccess } from '../../utils/toast';
+import { updateAdminProfile } from '../../api/admin'; // Import API function
 
 const AdminProfile = () => {
   const { user, token } = useAuth();
@@ -14,33 +15,25 @@ const AdminProfile = () => {
     if (user) {
       setEmail(user.email);
       // If you add a 'name' field to your user model in the backend, fetch it here
-      // setName(user.name || '');
+      // setName(user.name || ''); // For now, it's an empty string as there's no fetch for it
     }
   }, [user]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!token) {
+      showError('You must be logged in to update your profile.');
+      return;
+    }
     setLoading(true);
-    // In a real MERN app, you'd send a PUT request to your backend to update the user profile
-    // For now, we'll just simulate success/failure
     try {
-      // Example: const response = await fetch('http://localhost:5000/api/admin/profile', {
-      //   method: 'PUT',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${token}`,
-      //   },
-      //   body: JSON.stringify({ email, name }),
-      // });
-      // const data = await response.json();
-      // if (response.ok) {
-      //   showSuccess('Admin profile updated successfully!');
-      //   // Optionally update the user context with new data
-      // } else {
-      //   showError(data.error || 'Failed to update admin profile.');
-      // }
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-      showSuccess('Admin profile updated successfully! (Backend integration needed)');
+      const { data, error } = await updateAdminProfile(token, name);
+      if (data) {
+        showSuccess('Admin profile updated successfully!');
+        // Optionally update the user context with new data if the backend returns it
+      } else if (error) {
+        showError(error);
+      }
     } catch (error) {
       showError('An error occurred while updating admin profile.');
     } finally {
