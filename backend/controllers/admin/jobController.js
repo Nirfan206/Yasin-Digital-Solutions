@@ -1,4 +1,5 @@
 const Job = require('../../models/Job');
+const { createNotification } = require('../notificationController'); // Import notification helper
 
 // @desc    Get all jobs
 // @route   GET /api/admin/jobs
@@ -32,6 +33,14 @@ const createJob = async (req, res) => {
       status,
       employeeId: employeeId || undefined, // Can be unassigned
     });
+
+    // Send notification to assigned employee if applicable
+    if (job.employeeId) {
+      const message = `You have been assigned a new job: "${job.title}" (ID: ${job._id.toString().slice(-6)}).`;
+      const link = `/employee/dashboard/assigned-jobs`; // Link to employee's assigned jobs page
+      await createNotification(job.employeeId, message, link, 'job_assigned');
+    }
+
     res.status(201).json(job);
   } catch (error) {
     console.error(error);
@@ -52,6 +61,9 @@ const updateJob = async (req, res) => {
       return res.status(404).json({ error: 'Job not found' });
     }
 
+    const oldEmployeeId = job.employeeId ? job.employeeId.toString() : undefined;
+    const oldStatus = job.status;
+
     job.title = title || job.title;
     job.client = client || job.client;
     job.dueDate = dueDate || job.dueDate;
@@ -66,6 +78,26 @@ const updateJob = async (req, res) => {
     }
 
     const updatedJob = await job.save();
+
+    // Send notification if employee assignment changed
+    const newEmployeeId = updatedJob.employeeId ? updatedJob.employeeId.toString() : undefined;
+    if (newEmployeeId && newEmployeeId !== oldEmployeeId) {
+      const message = `You have been assigned job: "${updatedJob.title}" (ID: ${updatedJob._id.toString().slice(-6)}).`;
+      const link = `/employee/dashboard/assigned-jobs`;
+      await createNotification(newEmployeeId, message, link, 'job_assigned');
+    } else if (!newEmployeeId && oldEmployeeId) {
+      // If job was unassigned from an employee
+      const message = `Job "${updatedJob.title}" (ID: ${updatedJob._id.toString().slice(-6)}) has been unassigned from you.`;
+      await createNotification(oldEmployeeId, message, undefined, 'job_unassigned');
+    }
+
+    // Send notification if job status changed for the assigned employee
+    if (updatedJob.employeeId && oldStatus !== updatedJob.status) {
+      const message = `The status of job "${updatedJob.title}" (ID: ${updatedJob._id.toString().slice(-6)}) is now "${updatedJob.status}".`;
+      const link = `/employee/dashboard/assigned-jobs`;
+      await createNotification(updatedJob.employeeId, message, link, 'job_status_update');
+    }
+
     res.status(200).json(updatedJob);
   } catch (error) {
     console.error(error);
@@ -83,6 +115,12 @@ const deleteJob = async (req, res) => {
     const job = await Job.findById(id);
     if (!job) {
       return res.status(404).json({ error: 'Job not found' });
+    }
+
+    // Optionally, send a notification to the assigned employee if the job is deleted
+    if (job.employeeId) {
+      const message = `Job "${job.title}" (ID: ${job._id.toString().slice(-6)}) has been deleted.`;
+      await createNotification(job.employeeId, message, undefined, 'job_deleted');
     }
 
     await job.deleteOne();

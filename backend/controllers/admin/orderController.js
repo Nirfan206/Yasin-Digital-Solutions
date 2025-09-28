@@ -1,4 +1,5 @@
 const Order = require('../../models/Order');
+const { createNotification } = require('../notificationController'); // Import notification helper
 
 // @desc    Get all orders
 // @route   GET /api/admin/orders
@@ -30,8 +31,17 @@ const updateOrderStatus = async (req, res) => {
       return res.status(404).json({ error: 'Order not found' });
     }
 
+    const oldStatus = order.status;
     order.status = status;
     const updatedOrder = await order.save();
+
+    // Send notification to client if status changed
+    if (oldStatus !== updatedOrder.status) {
+      const message = `Your order #${updatedOrder._id.toString().slice(-6)} is now "${updatedOrder.status}".`;
+      const link = `/client/dashboard/orders`; // Link to client's orders page
+      await createNotification(updatedOrder.clientId, message, link, 'order_update');
+    }
+
     res.status(200).json(updatedOrder);
   } catch (error) {
     console.error(error);

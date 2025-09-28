@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const Subscription = require('../models/Subscription');
-const User = require('../models/User'); // To get client details for order creation
+const User = require('../models/User'); // To get client details for order creation and find admin
+const { createNotification } = require('../notificationController'); // Import notification helper
 
 // @desc    Get client's orders
 // @route   GET /api/client/orders
@@ -39,6 +40,14 @@ const createOrder = async (req, res) => {
       serviceType,
       requirements,
     });
+
+    // Send notification to admin about new order
+    const adminUser = await User.findOne({ role: 'admin' }); // Find an admin user
+    if (adminUser) {
+      const message = `New order placed by ${clientUser.name || clientUser.email} for "${serviceType}" (ID: ${order._id.toString().slice(-6)}).`;
+      const link = `/admin/dashboard/order-management`; // Link to admin's order management page
+      await createNotification(adminUser._id, message, link, 'new_order');
+    }
 
     res.status(201).json(order);
   } catch (error) {

@@ -28,7 +28,7 @@ export interface Order {
   requirements: string;
   status: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled' | 'Under Review';
   orderDate: string;
-  clientId?: string; // Optional, for client-specific orders
+  clientId: string; // Made non-optional for notification purposes
   clientName?: string; // Optional, for admin view
   clientEmail?: string; // Optional, for admin view
 }
