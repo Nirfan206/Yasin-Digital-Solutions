@@ -31,18 +31,24 @@ const Header = () => {
       <nav>
         <ul className="flex space-x-6 items-center">
           <li>
-            <Link to="/" className="text-gray-700 hover:text-blue-700 font-medium">Home</Link>
+            <Button asChild variant="ghost" className="text-gray-700 hover:text-blue-700 font-medium">
+              <Link to="/">Home</Link>
+            </Button>
           </li>
           <li>
-            <Link to="/services" className="text-gray-700 hover:text-blue-700 font-medium">Services</Link>
+            <Button asChild variant="ghost" className="text-gray-700 hover:text-blue-700 font-medium">
+              <Link to="/services">Services</Link>
+            </Button>
           </li>
           {user ? (
             <>
               <li>
-                <Link to={getDashboardLink()} className="text-gray-700 hover:text-blue-700 font-medium flex items-center space-x-1">
-                  <LayoutDashboard size={18} />
-                  <span>Dashboard</span>
-                </Link>
+                <Button asChild variant="ghost" className="text-gray-700 hover:text-blue-700 font-medium flex items-center space-x-1">
+                  <Link to={getDashboardLink()}>
+                    <LayoutDashboard size={18} />
+                    <span>Dashboard</span>
+                  </Link>
+                </Button>
               </li>
               <li>
                 <Button
@@ -58,10 +64,14 @@ const Header = () => {
           ) : (
             <>
               <li>
-                <Link to="/register" className="text-gray-700 hover:text-blue-700 font-medium">Register</Link>
+                <Button asChild variant="ghost" className="text-gray-700 hover:text-blue-700 font-medium">
+                  <Link to="/register">Register</Link>
+                </Button>
               </li>
               <li>
-                <Link to="/login" className="text-gray-700 hover:text-blue-700 font-medium">Login</Link>
+                <Button asChild variant="ghost" className="text-gray-700 hover:text-blue-700 font-medium">
+                  <Link to="/login">Login</Link>
+                </Button>
               </li>
             </>
           )}
