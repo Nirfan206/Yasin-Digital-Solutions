@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'; // Import shadcn/ui Select
 import { Job } from '../../types/api'; // Import Job interface
+import { Loader2 } from 'lucide-react'; // Import Loader2 icon for loading state
 
 const EmployeeAssignedJobs = () => {
   const { token } = useAuth();
@@ -115,7 +116,14 @@ const EmployeeAssignedJobs = () => {
                         disabled={updatingStatus === job._id}
                       >
                         <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Update Status" />
+                          {updatingStatus === job._id ? (
+                            <div className="flex items-center space-x-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <span>Updating...</span>
+                            </div>
+                          ) : (
+                            <SelectValue placeholder="Update Status" />
+                          )}
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="Assigned">Assigned</SelectItem>
