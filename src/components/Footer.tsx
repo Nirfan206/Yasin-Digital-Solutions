@@ -4,18 +4,24 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Linkedin } from 'lucide-react'; // Importing social media icons
 import { Button } from './ui/button'; // Import shadcn/ui Button
+import { useTranslation } from 'react-i18next'; // Import useTranslation
 
 const Footer = () => {
+  const { t } = useTranslation(); // Initialize useTranslation
+
   return (
     <footer className="bg-gray-800 text-white pt-10">
       <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-8">
         {/* Column 1: Address & Map */}
         <div>
-          <h3 className="text-lg font-semibold mb-4">Our Location</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('our_location')}</h3>
           <p className="text-gray-400 mb-4">
-            123 Digital Street,<br />
-            Tech City, TC 12345<br />
-            Country
+            {t('digital_street_address').split(', ').map((line, index) => (
+              <React.Fragment key={index}>
+                {line}
+                {index < t('digital_street_address').split(', ').length - 1 && <br />}
+              </React.Fragment>
+            ))}
           </p>
           <div className="w-full h-48 bg-gray-700 rounded-md overflow-hidden">
             <iframe
@@ -33,31 +39,31 @@ const Footer = () => {
 
         {/* Column 2: Quick Links */}
         <div>
-          <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('quick_links')}</h3>
           <ul className="space-y-2">
             <li>
               <Button asChild variant="link" className="p-0 h-auto text-gray-400 hover:text-blue-400 transition-colors justify-start">
-                <Link to="/">Home</Link>
+                <Link to="/">{t('home')}</Link>
               </Button>
             </li>
             <li>
               <Button asChild variant="link" className="p-0 h-auto text-gray-400 hover:text-blue-400 transition-colors justify-start">
-                <Link to="/services">Services</Link>
+                <Link to="/services">{t('services')}</Link>
               </Button>
             </li>
             <li>
               <Button asChild variant="link" className="p-0 h-auto text-gray-400 hover:text-blue-400 transition-colors justify-start">
-                <Link to="/contact">Contact Us</Link> {/* New link */}
+                <Link to="/contact">{t('contact_us')}</Link>
               </Button>
             </li>
             <li>
               <Button asChild variant="link" className="p-0 h-auto text-gray-400 hover:text-blue-400 transition-colors justify-start">
-                <Link to="/login">Login</Link>
+                <Link to="/login">{t('login')}</Link>
               </Button>
             </li>
             <li>
               <Button asChild variant="link" className="p-0 h-auto text-gray-400 hover:text-blue-400 transition-colors justify-start">
-                <Link to="/register">Register</Link>
+                <Link to="/register">{t('register')}</Link>
               </Button>
             </li>
           </ul>
@@ -65,9 +71,9 @@ const Footer = () => {
 
         {/* Column 3: Social Media & Contact Info */}
         <div>
-          <h3 className="text-lg font-semibold mb-4">Connect With Us</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('connect_with_us')}</h3>
           <p className="text-gray-400">
-            Stay updated with our latest news and services.
+            {t('stay_updated_with_news')}
           </p>
           <div className="flex space-x-4 mt-4">
             <Button asChild variant="ghost" size="icon" className="text-gray-400 hover:text-blue-400 transition-colors">
@@ -85,7 +91,7 @@ const Footer = () => {
 
       {/* Bottom Bar */}
       <div className="bg-gray-900 py-4 text-center text-gray-500 text-sm">
-        <p>© 2024 Yasin Digital Solutions. Developed by nanasana irfan.</p>
+        <p>{t('copyright_notice')}</p>
       </div>
     </footer>
   );
