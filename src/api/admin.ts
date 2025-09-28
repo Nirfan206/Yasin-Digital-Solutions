@@ -225,3 +225,43 @@ export const deleteEmployee = async (token: string, employeeId: string): Promise
     return { error: error.message || 'An unknown error occurred' };
   }
 };
+
+// New functions for Admin Overview
+export const fetchAdminOverviewData = async (token: string): Promise<ApiResponse<{ totalClients: number; totalEmployees: number; totalOrders: number }>> => {
+  try {
+    // In a real backend, this would be a single endpoint returning all counts.
+    // For now, we'll simulate by fetching all and getting the length.
+    const [clientsResponse, employeesResponse, ordersResponse] = await Promise.all([
+      fetch(`${API_BASE_URL}/clients`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      }),
+      fetch(`${API_BASE_URL}/employees`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      }),
+      fetch(`${API_BASE_URL}/orders`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      }),
+    ]);
+
+    const clientsData = await clientsResponse.json();
+    const employeesData = await employeesResponse.json();
+    const ordersData = await ordersResponse.json();
+
+    if (!clientsResponse.ok || !employeesResponse.ok || !ordersResponse.ok) {
+      throw new Error(clientsData.error || employeesData.error || ordersData.error || 'Failed to fetch overview data');
+    }
+
+    return {
+      data: {
+        totalClients: clientsData.length,
+        totalEmployees: employeesData.length,
+        totalOrders: ordersData.length,
+      },
+    };
+  } catch (error: any) {
+    return { error: error.message || 'An unknown error occurred' };
+  }
+};
