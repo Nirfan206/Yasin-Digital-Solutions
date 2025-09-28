@@ -8,10 +8,11 @@ import Home from './pages/Home';
 import Services from './pages/Services';
 import Register from './pages/Register';
 import Login from './pages/Login';
+import ContactUs from './pages/ContactUs'; // New import
 import { AuthProvider } from './context/AuthContext';
 import ToastProvider from './components/ToastProvider';
-import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
-import { NotificationProvider } from './components/NotificationProvider'; // Import NotificationProvider
+import ProtectedRoute from './components/ProtectedRoute';
+import { NotificationProvider } from './components/NotificationProvider';
 
 // Dashboard Pages
 import ClientDashboard from './pages/client/ClientDashboard';
@@ -25,13 +26,14 @@ function App() {
     <Router>
       <ToastProvider />
       <AuthProvider>
-        <NotificationProvider> {/* Wrap with NotificationProvider */}
+        <NotificationProvider>
           <div className="flex flex-col min-h-screen">
             <Header />
             <main className="flex-grow">
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/services" element={<Services />} />
+                <Route path="/contact" element={<ContactUs />} /> {/* New route */}
                 <Route path="/register" element={<Register />} />
                 <Route path="/login" element={<Login />} />
 

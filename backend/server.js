@@ -8,7 +8,8 @@ const authRoutes = require('./routes/authRoutes');
 const clientRoutes = require('./routes/clientRoutes');
 const employeeRoutes = require('./routes/employeeRoutes');
 const adminRoutes = require('./routes/adminRoutes');
-const notificationRoutes = require('./routes/notificationRoutes'); // New import
+const notificationRoutes = require('./routes/notificationRoutes');
+const contactRoutes = require('./routes/contactRoutes'); // New import
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -24,7 +25,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/client', clientRoutes);
 app.use('/api/employee', employeeRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/notifications', notificationRoutes); // New route
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/contact', contactRoutes); // New route
 
 // Serve frontend
 if (process.env.NODE_ENV === 'production') {

@@ -47,6 +47,11 @@ const Footer = () => {
             </li>
             <li>
               <Button asChild variant="link" className="p-0 h-auto text-gray-400 hover:text-blue-400 transition-colors justify-start">
+                <Link to="/contact">Contact Us</Link> {/* New link */}
+              </Button>
+            </li>
+            <li>
+              <Button asChild variant="link" className="p-0 h-auto text-gray-400 hover:text-blue-400 transition-colors justify-start">
                 <Link to="/login">Login</Link>
               </Button>
             </li>

@@ -41,6 +41,11 @@ const Header = () => {
               <Link to="/services">Services</Link>
             </Button>
           </li>
+          <li>
+            <Button asChild variant="ghost" className="text-gray-700 hover:text-blue-700 font-medium">
+              <Link to="/contact">Contact Us</Link> {/* New link */}
+            </Button>
+          </li>
           {user ? (
             <>
               <li>
