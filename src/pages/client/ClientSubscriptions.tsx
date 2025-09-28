@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { fetchClientSubscriptions } from '../../api/client'; // Import API function
 import { showError } from '../../utils/toast';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 
 interface Subscription {
   _id: string; // Changed to _id to match typical MongoDB IDs
@@ -37,45 +39,49 @@ const ClientSubscriptions = () => {
   }, [token]);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-4">Your Subscriptions</h2>
-      {fetchingSubscriptions ? (
-        <p className="text-gray-600">Loading subscriptions...</p>
-      ) : subscriptions.length === 0 ? (
-        <p className="text-gray-600">You currently have no active subscriptions.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Next Renewal</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {subscriptions.map((sub) => (
-                <tr key={sub._id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{sub.serviceName}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{sub.startDate}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{sub.nextRenewalDate}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      sub.status === 'Active' ? 'bg-green-100 text-green-800' :
-                      sub.status === 'Expired' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {sub.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+    <Card className="w-full mx-auto">
+      <CardHeader>
+        <CardTitle className="text-2xl font-semibold text-gray-800">Your Subscriptions</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {fetchingSubscriptions ? (
+          <p className="text-gray-600">Loading subscriptions...</p>
+        ) : subscriptions.length === 0 ? (
+          <p className="text-gray-600">You currently have no active subscriptions.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Service</TableHead>
+                  <TableHead>Start Date</TableHead>
+                  <TableHead>Next Renewal</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {subscriptions.map((sub) => (
+                  <TableRow key={sub._id}>
+                    <TableCell className="font-medium">{sub.serviceName}</TableCell>
+                    <TableCell>{sub.startDate}</TableCell>
+                    <TableCell>{sub.nextRenewalDate}</TableCell>
+                    <TableCell>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        sub.status === 'Active' ? 'bg-green-100 text-green-800' :
+                        sub.status === 'Expired' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {sub.status}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
