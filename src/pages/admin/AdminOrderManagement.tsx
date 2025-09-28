@@ -7,16 +7,7 @@ import { fetchAllOrders, updateOrderStatus } from '../../api/admin'; // Import A
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'; // Import shadcn/ui Select
-
-interface Order {
-  _id: string;
-  clientName: string;
-  clientEmail: string;
-  serviceType: string;
-  requirements: string;
-  status: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled' | 'Under Review';
-  orderDate: string;
-}
+import { Order } from '../../types/api'; // Import Order interface
 
 const AdminOrderManagement = () => {
   const { token } = useAuth();

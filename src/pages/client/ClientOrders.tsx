@@ -10,14 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Textarea } from '../../components/ui/textarea'; // Using shadcn/ui Textarea
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'; // Import shadcn/ui Select
-
-interface Order {
-  _id: string; // Changed to _id to match typical MongoDB IDs
-  serviceType: string;
-  requirements: string;
-  status: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled';
-  orderDate: string;
-}
+import { Order } from '../../types/api'; // Import Order interface
 
 const ClientOrders = () => {
   const { token } = useAuth();

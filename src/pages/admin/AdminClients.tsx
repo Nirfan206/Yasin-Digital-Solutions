@@ -12,14 +12,7 @@ import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'; // Import shadcn/ui Select
 import Modal from '../../components/Modal'; // Import the new Modal component
-
-interface Client {
-  id: string;
-  name: string;
-  email: string;
-  status: 'Active' | 'Inactive';
-  registeredDate: string;
-}
+import { Client } from '../../types/api'; // Import Client interface
 
 const AdminClients = () => {
   const { token } = useAuth();

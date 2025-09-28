@@ -6,14 +6,7 @@ import { fetchClientSubscriptions } from '../../api/client'; // Import API funct
 import { showError } from '../../utils/toast';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
-
-interface Subscription {
-  _id: string; // Changed to _id to match typical MongoDB IDs
-  serviceName: string;
-  startDate: string;
-  nextRenewalDate: string;
-  status: 'Active' | 'Expired' | 'Pending';
-}
+import { Subscription } from '../../types/api'; // Import Subscription interface
 
 const ClientSubscriptions = () => {
   const { token } = useAuth();

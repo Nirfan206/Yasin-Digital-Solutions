@@ -4,28 +4,22 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { loginUser, registerUser, fetchCurrentUser } from '../api/auth';
 import { showSuccess, showError } from '../utils/toast';
 import { useNavigate } from 'react-router-dom';
-
-interface User {
-  id: string;
-  email: string;
-  role: string;
-  name?: string; // Added name to the User interface
-}
+import { UserProfile } from '../types/api'; // Import UserProfile interface
 
 interface AuthContextType {
-  user: User | null;
+  user: UserProfile | null;
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  updateUser: (userData: Partial<User>) => void; // Added updateUser function
+  updateUser: (userData: Partial<UserProfile>) => void; // Added updateUser function
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('jwtToken'));
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -86,7 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     navigate('/login');
   };
 
-  const updateUser = (userData: Partial<User>) => {
+  const updateUser = (userData: Partial<UserProfile>) => {
     setUser(prevUser => (prevUser ? { ...prevUser, ...userData } : null));
   };
 

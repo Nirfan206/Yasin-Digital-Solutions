@@ -7,15 +7,7 @@ import { fetchAssignedJobs, updateJobStatus } from '../../api/employee'; // Impo
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'; // Import shadcn/ui Select
-
-interface Job {
-  _id: string;
-  title: string;
-  client: string;
-  dueDate: string;
-  status: 'Assigned' | 'In Progress' | 'Under Review' | 'Completed';
-  priority: 'High' | 'Medium' | 'Low';
-}
+import { Job } from '../../types/api'; // Import Job interface
 
 const EmployeeAssignedJobs = () => {
   const { token } = useAuth();

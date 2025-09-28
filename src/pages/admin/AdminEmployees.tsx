@@ -12,15 +12,7 @@ import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'; // Import shadcn/ui Select
 import Modal from '../../components/Modal'; // Import the new Modal component
-
-interface Employee {
-  id: string;
-  name: string;
-  email: string;
-  role: string; // e.g., 'employee', 'manager'
-  status: 'Active' | 'Inactive';
-  hiredDate: string;
-}
+import { Employee } from '../../types/api'; // Import Employee interface
 
 const AdminEmployees = () => {
   const { token } = useAuth();

@@ -6,18 +6,11 @@ import { fetchCompletedJobs } from '../../api/employee'; // Import API function
 import { showError } from '../../utils/toast';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
-
-interface CompletedJob {
-  _id: string;
-  title: string;
-  client: string;
-  completionDate: string; // Assuming the backend provides this
-  feedback?: string; // Optional feedback field
-}
+import { Job } from '../../types/api'; // Import Job interface
 
 const EmployeeCompletedJobs = () => {
   const { token } = useAuth();
-  const [completedJobs, setCompletedJobs] = useState<CompletedJob[]>([]);
+  const [completedJobs, setCompletedJobs] = useState<Job[]>([]);
   const [fetchingJobs, setFetchingJobs] = useState(true);
 
   useEffect(() => {
@@ -33,6 +26,9 @@ const EmployeeCompletedJobs = () => {
           _id: job._id,
           title: job.title,
           client: job.client,
+          dueDate: job.dueDate, // Using dueDate as completionDate for now
+          status: job.status,
+          priority: job.priority,
           completionDate: job.dueDate, // Using dueDate as completionDate for now
           feedback: "No feedback yet." // Placeholder feedback
         })));

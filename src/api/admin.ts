@@ -1,49 +1,11 @@
 "use client";
 
+import { ApiResponse, UserProfile, Order, Client, Employee } from '../types/api';
+
 // This file will contain functions to interact with your MERN backend's admin-specific endpoints.
 // You will need to replace 'http://localhost:5000' with your actual backend URL.
 
 const API_BASE_URL = 'http://localhost:5000/api/admin'; // Assuming your backend runs on port 5000
-
-interface UserProfile {
-  id: string;
-  email: string;
-  name?: string;
-  role: string;
-}
-
-interface Order {
-  _id: string;
-  clientName: string;
-  clientEmail: string;
-  serviceType: string;
-  requirements: string;
-  status: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled';
-  orderDate: string;
-}
-
-interface Client {
-  id: string;
-  name: string;
-  email: string;
-  status: 'Active' | 'Inactive';
-  registeredDate: string;
-}
-
-interface Employee {
-  id: string;
-  name: string;
-  email: string;
-  role: string; // e.g., 'employee', 'manager'
-  status: 'Active' | 'Inactive';
-  hiredDate: string;
-}
-
-interface ApiResponse<T> {
-  data?: T;
-  message?: string;
-  error?: string;
-}
 
 // Admin Profile
 export const updateAdminProfile = async (token: string, name: string): Promise<ApiResponse<UserProfile>> => {

@@ -1,21 +1,11 @@
 "use client";
 
+import { AuthResponse, UserProfile } from '../types/api';
+
 // This file will contain functions to interact with your MERN backend's authentication endpoints.
 // You will need to replace 'http://localhost:5000' with your actual backend URL.
 
 const API_BASE_URL = 'http://localhost:5000/api/auth'; // Assuming your backend runs on port 5000
-
-interface AuthResponse {
-  token?: string;
-  user?: {
-    id: string;
-    email: string;
-    role: string;
-    name?: string; // Added name field
-  };
-  message?: string;
-  error?: string;
-}
 
 export const registerUser = async (email: string, password: string): Promise<AuthResponse> => {
   const response = await fetch(`${API_BASE_URL}/register`, {
