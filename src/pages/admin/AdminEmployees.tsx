@@ -11,6 +11,7 @@ import { Button } from '../../components/ui/button';
 import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'; // Import shadcn/ui Select
+import Modal from '../../components/Modal'; // Import the new Modal component
 
 interface Employee {
   id: string;
@@ -205,77 +206,78 @@ const AdminEmployees = () => {
           </div>
         )}
 
-        {/* Modal for Add/Edit Employee */}
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-            <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">{currentEmployee ? 'Edit Employee' : 'Add New Employee'}</h3>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="employeeName">Name</Label>
-                  <Input
-                    type="text"
-                    id="employeeName"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="employeeEmail">Email</Label>
-                  <Input
-                    type="email"
-                    id="employeeEmail"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="employeeRole">Role</Label>
-                  <Select value={role} onValueChange={setRole} disabled={loading}>
-                    <SelectTrigger id="employeeRole">
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="employee">Employee</SelectItem>
-                      <SelectItem value="manager">Manager</SelectItem>
-                      {/* Add other roles as needed */}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="employeeStatus">Status</Label>
-                  <Select value={status} onValueChange={(value: 'Active' | 'Inactive') => setStatus(value)} disabled={loading}>
-                    <SelectTrigger id="employeeStatus">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Active">Active</SelectItem>
-                      <SelectItem value="Inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex justify-end space-x-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={closeModal}
-                    disabled={loading}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                  >
-                    {loading ? 'Saving...' : 'Save Employee'}
-                  </Button>
-                </div>
-              </form>
+        <Modal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          title={currentEmployee ? 'Edit Employee' : 'Add New Employee'}
+          footer={
+            <div className="flex justify-end space-x-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={closeModal}
+                disabled={loading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                form="employee-form" // Link button to the form
+                disabled={loading}
+              >
+                {loading ? 'Saving...' : 'Save Employee'}
+              </Button>
             </div>
-          </div>
-        )}
+          }
+        >
+          <form id="employee-form" onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="employeeName">Name</Label>
+              <Input
+                type="text"
+                id="employeeName"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="employeeEmail">Email</Label>
+              <Input
+                type="email"
+                id="employeeEmail"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="employeeRole">Role</Label>
+              <Select value={role} onValueChange={setRole} disabled={loading}>
+                <SelectTrigger id="employeeRole">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="employee">Employee</SelectItem>
+                  <SelectItem value="manager">Manager</SelectItem>
+                  {/* Add other roles as needed */}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="employeeStatus">Status</Label>
+              <Select value={status} onValueChange={(value: 'Active' | 'Inactive') => setStatus(value)} disabled={loading}>
+                <SelectTrigger id="employeeStatus">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </form>
+        </Modal>
       </CardContent>
     </Card>
   );

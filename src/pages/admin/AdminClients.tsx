@@ -11,6 +11,7 @@ import { Button } from '../../components/ui/button';
 import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'; // Import shadcn/ui Select
+import Modal from '../../components/Modal'; // Import the new Modal component
 
 interface Client {
   id: string;
@@ -199,64 +200,65 @@ const AdminClients = () => {
           </div>
         )}
 
-        {/* Modal for Add/Edit Client */}
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
-            <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">{currentClient ? 'Edit Client' : 'Add New Client'}</h3>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="clientName">Name</Label>
-                  <Input
-                    type="text"
-                    id="clientName"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="clientEmail">Email</Label>
-                  <Input
-                    type="email"
-                    id="clientEmail"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="clientStatus">Status</Label>
-                  <Select value={status} onValueChange={(value: 'Active' | 'Inactive') => setStatus(value)} disabled={loading}>
-                    <SelectTrigger id="clientStatus">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Active">Active</SelectItem>
-                      <SelectItem value="Inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex justify-end space-x-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={closeModal}
-                    disabled={loading}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                  >
-                    {loading ? 'Saving...' : 'Save Client'}
-                  </Button>
-                </div>
-              </form>
+        <Modal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          title={currentClient ? 'Edit Client' : 'Add New Client'}
+          footer={
+            <div className="flex justify-end space-x-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={closeModal}
+                disabled={loading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                form="client-form" // Link button to the form
+                disabled={loading}
+              >
+                {loading ? 'Saving...' : 'Save Client'}
+              </Button>
             </div>
-          </div>
-        )}
+          }
+        >
+          <form id="client-form" onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="clientName">Name</Label>
+              <Input
+                type="text"
+                id="clientName"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="clientEmail">Email</Label>
+              <Input
+                type="email"
+                id="clientEmail"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="clientStatus">Status</Label>
+              <Select value={status} onValueChange={(value: 'Active' | 'Inactive') => setStatus(value)} disabled={loading}>
+                <SelectTrigger id="clientStatus">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </form>
+        </Modal>
       </CardContent>
     </Card>
   );
