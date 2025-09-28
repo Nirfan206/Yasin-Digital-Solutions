@@ -4,9 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Users, Building2, ListOrdered, Briefcase, CalendarCheck, Hourglass, SearchCheck, CheckCircle2, XCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { fetchAdminOverviewData } from '../../api/admin/overview'; // Import API function from new file
+import { fetchAdminOverviewData } from '../../api/admin/overview';
 import { showError } from '../../utils/toast';
 import { Order, Job } from '../../types/api';
+import LoadingSpinner from '../../components/LoadingSpinner'; // Import the new LoadingSpinner
 
 const AdminOverview = () => {
   const { token } = useAuth();
@@ -62,7 +63,11 @@ const AdminOverview = () => {
   }, [token]);
 
   if (loading) {
-    return <div className="flex justify-center items-center min-h-[200px]">Loading admin overview...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <LoadingSpinner size={40} /> {/* Use the LoadingSpinner component */}
+      </div>
+    );
   }
 
   return (
